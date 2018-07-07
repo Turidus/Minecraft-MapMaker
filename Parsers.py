@@ -10,32 +10,32 @@ def _rgbDistance(rgbFromPixel,rgbFromList):
     
     return math.sqrt( rDif ** 2 + gDif ** 2 + bDif ** 2)
     
-def blockFinder(mapID,mapIdList):
+def _blockFinder(mapID,mapIdList):
     
     for entry in mapIdList:
         
         if entry[0] == mapID:
             return entry[2:]
             
-def openImage(pathString):
+def _openImage(pathString):
     
     try:
         with open(pathString,"rb") as file: 
             img = Image.open(io.BytesIO(file.read()))
     
     except(IOError):
-        raise IOError("pathString does not exist or is not a (supported) image")
+        raise IOError("File is not a (supported) image")
     
     return img
     
-def addOneToAllY(positionMatrix):
+def _addOneToAllY(positionMatrix):
     for z in range(0,len(positionMatrix),1):
         for x in range(0,len(positionMatrix[z]),1):
             positionMatrix[z][x][3] += 1
     
 def imageFileToRGBMatrix(pathString):
     
-    img = openImage(pathString)
+    img = _openImage(pathString)
     
     if img.mode != "RGB":
         
@@ -102,7 +102,7 @@ def mapIDToAmount(mapIDMatrix,mapIdList):
         
         for x in range(0,len(mapIDMatrix[y]),1):
             
-            block = blockFinder(mapIDMatrix[y][x],mapIdList)
+            block = _blockFinder(mapIDMatrix[y][x],mapIdList)
             
             if block[0] not in usedBlocks:
                 
@@ -162,7 +162,7 @@ def mapIDToPosition(mapIDMatrix,mapIdList):
                 if int(mapIDMatrix[z][x]) % 4 == 0:
                     posY = positionMatrix[z-1][x][3] - 1
                     if posY < 0:
-                        addOneToAllY(positionMatrix)
+                        _addOneToAllY(positionMatrix)
                         for item in tempLine:
                             item[3] += 1
                         posY = 0
@@ -183,7 +183,7 @@ def mapIDToPosition(mapIDMatrix,mapIdList):
         for x in range(0,len(positionMatrix[z]),1):
             if positionMatrix[z][x][0] != curMapID:
                 curMapID = positionMatrix[z][x][0]
-                curBlock = blockFinder(curMapID,mapIdList)[0]
+                curBlock = _blockFinder(curMapID,mapIdList)[0]
                 
             retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[z][x][1] + 1,positionMatrix[z][x][2],positionMatrix[z][x][3])
     
