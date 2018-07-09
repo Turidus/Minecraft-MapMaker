@@ -2,6 +2,7 @@ import math
 from PIL import Image
 import io
 import sys
+import copy
 
 def _rgbDistance(rgbFromPixel,rgbFromList):
     rDif = rgbFromPixel[0] - rgbFromList[0]
@@ -44,15 +45,18 @@ def imageFileToRGBMatrix(pathString):
     
     rgbMatrix  = []
     
-    for y in range(0,img.width,1):
+    for y in range(img.height):
         
         tempLine = []
         
-        for x in range(0,img.height,1):
+        for x in range(img.width):
             
             tempLine.append(img.getpixel((x,y)))
         
         rgbMatrix.append(tempLine)
+        
+    if len(rgbMatrix) == 0 or len(rgbMatrix[0]) == 0:
+        raise IOError("Inpit image was empty")
     
     return rgbMatrix
     
@@ -126,27 +130,25 @@ def mapIDToAmount(mapIDMatrix,mapIdList):
     
     return retString
     
-def mapIDToPosition(mapIDMatrix,mapIdList):
+def mapIDToPosition(mapIDMatrix,mapIDList):
     
     positionMatrix = []
-    curMapID = "44"
+    curMapID = 44
     curBlock = "Cobbelstone"
     startY = 64
     
     
-    height = len(mapIDMatrix) + 1
+    height = len(mapIDMatrix) + 1 #+ 1 because we add a additional line to the matrix
+    width = len(mapIDMatrix[0])
     
-    if (height - 1) > 0:
-        width = len(mapIDMatrix[0])
-    else:
-        raise ValueError("mapIDMatrix was empty")
+    workMatrix = copy.deepcopy(mapIDMatrix)
     
     zeroLine = [] #This adds a additinal row of blocks into the map, to shade the first row of the image correctly
                     
     
     for zeroPosition in range(0,width,1):
-        zeroLine.append("44")
-    mapIDMatrix.insert(0,zeroLine)
+        zeroLine.append(44)
+    workMatrix.insert(0,zeroLine)
     
     
     for z in range(0,height,1):
@@ -156,10 +158,10 @@ def mapIDToPosition(mapIDMatrix,mapIdList):
         for x in range(0,width,1):
             
             if z == 0:
-                tempLine.append(["44",x,height,startY])
+                tempLine.append([44,x,height,startY])
             
             else:
-                if int(mapIDMatrix[z][x]) % 4 == 0:
+                if int(workMatrix[z][x]) % 4 == 0:
                     posY = positionMatrix[z-1][x][3] - 1
                     if posY < 0:
                         _addOneToAllY(positionMatrix)
@@ -167,13 +169,13 @@ def mapIDToPosition(mapIDMatrix,mapIdList):
                             item[3] += 1
                         posY = 0
                 
-                elif int(mapIDMatrix[z][x]) % 4 == 2:
+                elif int(workMatrix[z][x]) % 4 == 2:
                     posY = positionMatrix[z-1][x][3] + 1
                 
                 else:
                     posY = positionMatrix[z-1][x][3]
                 
-                tempLine.append([mapIDMatrix[z][x],x, height - z, posY])
+                tempLine.append([workMatrix[z][x],x, height - z, posY])
         
         positionMatrix.append(tempLine)
     
@@ -183,7 +185,7 @@ def mapIDToPosition(mapIDMatrix,mapIdList):
         for x in range(0,len(positionMatrix[z]),1):
             if positionMatrix[z][x][0] != curMapID:
                 curMapID = positionMatrix[z][x][0]
-                curBlock = _blockFinder(curMapID,mapIdList)[0]
+                curBlock = _blockFinder(curMapID,mapIDList)[0]
                 
             retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[z][x][1] + 1,positionMatrix[z][x][2],positionMatrix[z][x][3])
     
@@ -191,7 +193,30 @@ def mapIDToPosition(mapIDMatrix,mapIdList):
 
 
 
-
+def mapIDToPicture(mapIDMatrix, mapIDList):
+    
+    curMapID = 0
+    curRGB = (0,0,0)
+    
+    image = Image.new("RGB", (len(mapIDMatrix[0]),len(mapIDMatrix)))
+    
+    for y in range(len(mapIDMatrix)):
+        
+        for x in range(len(mapIDMatrix[0])):
+            
+            if curMapID != mapIDMatrix[y][x]:
+                
+                for item in mapIDList:
+                    
+                    if item[0] == mapIDMatrix[y][x]:
+                        
+                        curRGB = item[1]
+                        break
+            
+            image.putpixel((x,y),curRGB)
+            
+    return image
+    
 
 
 
