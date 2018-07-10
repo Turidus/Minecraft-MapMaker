@@ -30,14 +30,17 @@ def _openImage(pathString):
     return img
     
 def _addOneToAllY(positionMatrix):
-    for z in range(0,len(positionMatrix),1):
-        for x in range(0,len(positionMatrix[z]),1):
+    for z in range(len(positionMatrix)):
+        for x in range(len(positionMatrix[z])):
             positionMatrix[z][x][3] += 1
     
 def imageFileToRGBMatrix(pathString):
     
     img = _openImage(pathString)
-    
+
+    if img.size[0] == 0 or img.size[1] == 0:
+        raise IOError("Inpit image was empty")
+        
     if img.mode != "RGB":
         
         img = img.convert("RGB")
@@ -55,9 +58,6 @@ def imageFileToRGBMatrix(pathString):
         
         rgbMatrix.append(tempLine)
         
-    if len(rgbMatrix) == 0 or len(rgbMatrix[0]) == 0:
-        raise IOError("Inpit image was empty")
-    
     return rgbMatrix
     
 def rgbMatrixToMapID(rgbMatrix, mapIdList):
@@ -67,11 +67,11 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
     curMapID = "0"
     
     
-    for y in range(0,len(rgbMatrix),1):
+    for y in range(len(rgbMatrix)):
         
         tempLine = []
         
-        for x in range(0,len(rgbMatrix[y]),1):
+        for x in range(len(rgbMatrix[y])):
             
             if curRGB == rgbMatrix[y][x]:       #Pictures often have groups of pixels with the same value
                 tempLine.append(curMapID)       #This saves a loop through the MapIdList in that case
@@ -100,11 +100,11 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
     
     usedBlocks = {}
     
-    for y in range(0,len(mapIDMatrix),1):
+    for y in range(len(mapIDMatrix)):
         
         
         
-        for x in range(0,len(mapIDMatrix[y]),1):
+        for x in range(len(mapIDMatrix[y])):
             
             block = _blockFinder(mapIDMatrix[y][x],mapIdList)
             
@@ -136,24 +136,24 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList):
     startY = 64
     
     
-    height = len(mapIDMatrix) + 1 #+ 1 because we add a additional line to the matrix
+    height = len(mapIDMatrix) + 1 #+ 1 because there will be an additional line added to the matrix
     width = len(mapIDMatrix[0])
     
     workMatrix = copy.deepcopy(mapIDMatrix)
     
-    zeroLine = [] #This adds a additinal row of blocks into the map, to shade the first row of the image correctly
+    zeroLine = [] #This adds a additinal row of blocks into the map, to shade the first row of the image on the map correctly
                     
     
-    for zeroPosition in range(0,width,1):
+    for zeroPosition in range(width):
         zeroLine.append(44)
     workMatrix.insert(0,zeroLine)
     
     
-    for z in range(0,height,1):
+    for z in range(height):
         
         tempLine = []
         
-        for x in range(0,width,1):
+        for x in range(width):
             
             if z == 0:
                 tempLine.append([44,x,height,startY])
@@ -182,14 +182,14 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList):
     
 
     
-def positionMatrixToPositionString(positionMatrix):
+def positionMatrixToPositionString(positionMatrix,mapIDList):
     
     curMapID = 44
     curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
-    for z in range(0,len(positionMatrix),1):
-        for x in range(0,len(positionMatrix[z]),1):
+    for z in range(len(positionMatrix)):
+        for x in range(len(positionMatrix[z])):
             if positionMatrix[z][x][0] != curMapID:
                 curMapID = positionMatrix[z][x][0]
                 curBlock = _blockFinder(curMapID,mapIDList)[0]

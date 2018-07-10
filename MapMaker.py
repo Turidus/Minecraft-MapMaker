@@ -43,7 +43,7 @@ positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList)
 #Calculating and saving results
 
 Saving.saveAmountTxT(mapIDMatrix,mapIDList,imageName)
-Saving.saveBlockPositionTxT(positionMatrix, name)
+Saving.saveBlockPositionTxT(positionMatrix,mapIDList, imageName)
 
 if args.P:
     Saving.saveImage(mapIDMatrix, mapIDList, imageName)

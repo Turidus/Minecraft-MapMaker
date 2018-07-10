@@ -15,9 +15,9 @@ def saveAmountTxT(mapIDMatrix, mapIDList, name):
     with open("./save/" + name + "/" + name +"_amount.txt", "w") as saveFile:
         saveFile.write(stringToSave)
         
-def saveBlockPositionTxT(positionMatrix, name):
+def saveBlockPositionTxT(positionMatrix,mapIDList, name):
     
-    stringToSave = Parsers.positionMatrixToPositionString(positionMatrix)
+    stringToSave = Parsers.positionMatrixToPositionString(positionMatrix,mapIDList)
     
     if not os.path.isdir("./save/" + name):
         
