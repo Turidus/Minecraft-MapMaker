@@ -96,7 +96,7 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
     
     return mapIdMatrix
 
-def mapIDToAmount(mapIDMatrix,mapIdList):
+def mapIDToAmountString(mapIDMatrix,mapIdList):
     
     usedBlocks = {}
     
@@ -130,11 +130,9 @@ def mapIDToAmount(mapIDMatrix,mapIdList):
     
     return retString
     
-def mapIDToPosition(mapIDMatrix,mapIDList):
+def mapIDToPositionMatrix(mapIDMatrix,mapIDList):
     
     positionMatrix = []
-    curMapID = 44
-    curBlock = "Cobbelstone"
     startY = 64
     
     
@@ -179,6 +177,15 @@ def mapIDToPosition(mapIDMatrix,mapIDList):
         
         positionMatrix.append(tempLine)
     
+    return positionMatrix
+
+    
+
+    
+def positionMatrixToPositionString(positionMatrix):
+    
+    curMapID = 44
+    curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
     for z in range(0,len(positionMatrix),1):
