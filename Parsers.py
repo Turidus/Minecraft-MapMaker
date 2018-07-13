@@ -164,7 +164,6 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
                     #This prevents block from being placed under the minimum Y position 
                     #0-5 are the bedrock level on survivale Maps
                     if positionMatrix[z-1][x][3] == minimumY:
-                        #This prevents
                         _addOneToAllY(positionMatrix)
                         for item in tempLine:
                             item[3] += 1
