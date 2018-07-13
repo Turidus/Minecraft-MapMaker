@@ -3,6 +3,7 @@ from PIL import Image
 import io
 import sys
 import copy
+import random as rnd
 
 def _rgbDistance(rgbFromPixel,rgbFromList):
     rDif = rgbFromPixel[0] - rgbFromList[0]
@@ -130,10 +131,10 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
     
     return retString
     
-def mapIDToPositionMatrix(mapIDMatrix,mapIDList):
+def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     
     positionMatrix = []
-    startY = 64
+    startY = 64 + minimumY
     
     
     height = len(mapIDMatrix) + 1 #+ 1 because there will be an additional line added to the matrix
@@ -160,14 +161,26 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList):
             
             else:
                 if int(workMatrix[z][x]) % 4 == 0:
-                    posY = positionMatrix[z-1][x][3] - 1
-                    if posY < 0:
+                    #This prevents block from being placed under the minimum Y position 
+                    #0-5 are the bedrock level on survivale Maps
+                    if positionMatrix[z-1][x][3] == minimumY:
+                        #This prevents
                         _addOneToAllY(positionMatrix)
                         for item in tempLine:
                             item[3] += 1
-                        posY = 0
+                    posY = positionMatrix[z-1][x][3] - 1
                 
                 elif int(workMatrix[z][x]) % 4 == 2:
+                    
+                    if positionMatrix[z-1][x][3] == maximumY:
+                        #This breaks long runs that occure in big pictures and
+                        #exeeds the height limit of 255 blocks on a minecraft map (or any given maximum Y position)
+                        #It also leads to a mismatched color pixel on the map.
+                        #To prevent lines in pictures with areas of similar colors, this is spread over a range of blocks
+                        zOffset = rnd.randint(1,math.minimum(10,len(positionMatrix) - 1)
+                        for deltaZ in range(zOffset):
+                            positionMatrix[z-deltaZ][x][3] = minimumY + zOffset - deltaZ 
+                        
                     posY = positionMatrix[z-1][x][3] + 1
                 
                 else:
