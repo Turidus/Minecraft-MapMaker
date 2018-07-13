@@ -134,7 +134,7 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
 def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     
     positionMatrix = []
-    startY = 64 + minimumY
+    startY = int((maximumY - minimumY) / 2)
     
     
     height = len(mapIDMatrix) + 1 #+ 1 because there will be an additional line added to the matrix
@@ -153,6 +153,7 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     for z in range(height):
         
         tempLine = []
+        needsToBeRaised = False
         
         for x in range(width):
             
@@ -160,34 +161,49 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
                 tempLine.append([44,x,height,startY])
             
             else:
-                if int(workMatrix[z][x]) % 4 == 0:
-                    #This prevents block from being placed under the minimum Y position 
-                    #0-5 are the bedrock level on survivale Maps
-                    if positionMatrix[z-1][x][3] == minimumY:
-                        _addOneToAllY(positionMatrix)
-                        for item in tempLine:
-                            item[3] += 1
-                    posY = positionMatrix[z-1][x][3] - 1
-                
+                if int(workMatrix[z][x]) % 4 == 1:
+                    posY = positionMatrix[z-1][x][3]     
+                                  
                 elif int(workMatrix[z][x]) % 4 == 2:
                     
-                    if positionMatrix[z-1][x][3] == maximumY:
-                        #This breaks long runs that occure in big pictures and
-                        #exeeds the height limit of 255 blocks on a minecraft map (or any given maximum Y position)
-                        #It also leads to a mismatched color pixel on the map.
-                        #To prevent lines in pictures with areas of similar colors, this is spread over a range of blocks
-                        zOffset = rnd.randint(1,math.minimum(10,len(positionMatrix) - 1)
-                        for deltaZ in range(zOffset):
-                            positionMatrix[z-deltaZ][x][3] = minimumY + zOffset - deltaZ 
-                        
                     posY = positionMatrix[z-1][x][3] + 1
                 
                 else:
-                    posY = positionMatrix[z-1][x][3]
+
+                    if not needsToBeRaised and positionMatrix[z-1][x][3] <= minimumY:
+                    #This prevents block from being placed under the minimum Y position 
+                    #0-5 are the bedrock level on survivale Maps
+
+                        #_addOneToAllY(positionMatrix)
+                        #for item in tempLine:
+                        #    item[3] += 1
+                        needsToBeRaised = True
+                    posY = positionMatrix[z-1][x][3] - 1
+                
                 
                 tempLine.append([workMatrix[z][x],x, height - z, posY])
-        
+                
+                
         positionMatrix.append(tempLine)
+        if needsToBeRaised:
+            _addOneToAllY(positionMatrix)
+    
+    #This breaks long runs that occure in big pictures and
+    #exeeds the height limit of 255 blocks on a minecraft map (or any given maximum Y position)
+    #It also leads to a mismatched color pixel on the map.
+    #To prevent this from lines in pictures with areas of similar colors, this is spread over a range of blocks
+    for x in range(len(positionMatrix[0])):
+        
+        for z in range(len(positionMatrix)):
+            
+            if positionMatrix[z][x][3] >= maximumY:
+
+                zOffset = rnd.randint(0,min(10,z))
+
+                for deltaZ in range(0,len(positionMatrix) - zOffset):
+
+                    positionMatrix[z - zOffset + deltaZ][x][3] = minimumY + deltaZ
+            
     
     return positionMatrix
 

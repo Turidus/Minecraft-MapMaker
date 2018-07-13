@@ -35,16 +35,16 @@ else:
     mapIDList = MapIDGenerator.mapIDGenerator3D(args.bl)
 
 
-positionMatrixMinY = args.minY if args.minY else 6
+positionMatrixMinY = int(args.minY) if args.minY else 6
 
-positionMatrixMaxY = args.maxY if args.maxY else 250
+positionMatrixMaxY = int(args.maxY) if args.maxY else 250
 
 #Calculating intermediaries 
 rgbMatrix = Parsers.imageFileToRGBMatrix(imagePath)
 
 mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDList)
 
-positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList, minY, maxY)
+positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
 
 #Calculating and saving results
 
