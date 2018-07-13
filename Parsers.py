@@ -226,7 +226,12 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
     
 
 
-
+def positionMatrixToSchematic(positionMatrix, mapIDList):
+    
+    
+    
+    
+    return schematic
 
 
 
