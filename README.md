@@ -11,6 +11,6 @@ txt file containing the type and amount of needed blocks (implemented)
 
 txt file containing the type and relative position of needed blocks (implemented)
 
-schematic file for mcedit and compatiable
+schematic file for mcedit and compatiable (implemented)
 
-image showing endresult
+image showing endresult(implemented)
