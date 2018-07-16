@@ -228,8 +228,8 @@ def positionMatrixToPositionString(positionMatrix,mapIDList):
     curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
-    for z in range(len(positionMatrix)):
-        for x in range(len(positionMatrix[z])):
+    for x in range(len(positionMatrix[0])):
+        for z in range(len(positionMatrix)):
             if positionMatrix[z][x][0] != curMapID:
                 curMapID = positionMatrix[z][x][0]
                 curBlock = _blockFinder(curMapID,mapIDList)[0]
