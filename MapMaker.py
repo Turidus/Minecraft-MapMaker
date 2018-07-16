@@ -11,12 +11,16 @@ cmdparser.add_argument("pathToImage", help="The path to the image that should be
 cmdparser.add_argument("-bl", nargs="+", help="Optional list of BaseColorIDs that should not be used\n")
 cmdparser.add_argument("-n", help = "Optional name for the resulting files\n")
 cmdparser.add_argument("-twoD", action="store_true", help = "If added, this will generate a flat map instead of a stepped one\n")
-cmdparser.add_argument("-p", action="store_true", help = "If added, this will generated a preview picture of the map\n")
+cmdparser.add_argument("-p", action="store_false", help = "If added, this will prevent the generation of a preview picture of the map\n")
+cmdparser.add_argument("-bp", action="store_false", help = "If added, this will prevent the generation of a list of the block positions\n")
+cmdparser.add_argument("-ba", action="store_false", help = "If added, this will prevent the generation of a list of needed amounts of blocks\n")
+cmdparser.add_argument("-s", action="store_false", help = "If added, this will prevent the generation of the schematic file\n")
 cmdparser.add_argument("-minY", help = "Defines the minimum Y coordinate at which blocks are placed.\n Should be the block you will be standing on for impact schematics\n")
 cmdparser.add_argument("-maxY", help = "Defines the maximum Y coordinate at which blocks are placed. Does not impact schematics\n")
 
 
 args = cmdparser.parse_args()
+
 
 #Settings
 imagePath = os.path.abspath(args.pathToImage)
@@ -39,17 +43,32 @@ positionMatrixMinY = int(args.minY) if args.minY else 6
 
 positionMatrixMaxY = int(args.maxY) if args.maxY else 250
 
+
+
 #Calculating intermediaries 
 rgbMatrix = Parsers.imageFileToRGBMatrix(imagePath)
 
 mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDList)
 
-positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
+if args.bp or args.s:
+    positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
+
+if args.s:
+    tag_Compound = Parsers.positionMatrixToTag_Compound(positionMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
+
 
 #Calculating and saving results
 
-Saving.saveAmountTxT(mapIDMatrix,mapIDList,imageName)
-Saving.saveBlockPositionTxT(positionMatrix,mapIDList, imageName)
+if args.ba:
+    Saving.saveAmountTxT(mapIDMatrix,mapIDList,imageName)
+
+if args.bp:
+    Saving.saveBlockPositionTxT(positionMatrix,mapIDList, imageName)
 
 if args.p:
     Saving.saveImage(mapIDMatrix, mapIDList, imageName)
+    
+if args.s:
+    Saving.saveSchematic(tag_Compound, imageName)
+
+

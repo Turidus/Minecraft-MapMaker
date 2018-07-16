@@ -1,16 +1,18 @@
-import math
+from math import sqrt
 from PIL import Image
 import io
 import sys
 import copy
 import random as rnd
+import nbt
 
 def _rgbDistance(rgbFromPixel,rgbFromList):
+    
     rDif = rgbFromPixel[0] - rgbFromList[0]
     gDif = rgbFromPixel[1] - rgbFromList[1]
     bDif = rgbFromPixel[2] - rgbFromList[2]
     
-    return math.sqrt( rDif ** 2 + gDif ** 2 + bDif ** 2)
+    return sqrt( rDif ** 2 + gDif ** 2 + bDif ** 2)
     
 def _blockFinder(mapID,mapIdList):
     
@@ -34,6 +36,14 @@ def _addOneToAllY(positionMatrix):
     for z in range(len(positionMatrix)):
         for x in range(len(positionMatrix[z])):
             positionMatrix[z][x][3] += 1
+            
+def _sortkeyForUsedBlocks(string):
+    
+    if "_" not in string:        
+        return (int(string), -1)
+    else:
+        splitString = string.split("_")
+        return (int(splitString[0]),int(splitString[1]))
     
 def imageFileToRGBMatrix(pathString):
     
@@ -66,8 +76,7 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
     mapIdMatrix = []
     curRGB = (-1,-1,-1)
     curMapID = "0"
-    
-    
+
     for y in range(len(rgbMatrix)):
         
         tempLine = []
@@ -85,7 +94,7 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
             for entry in mapIdList:
                 
                 tempDif = _rgbDistance(rgbMatrix[y][x],entry[1])
-                
+
                 if tempDif < curDif:
                     
                     curDif = tempDif
@@ -94,7 +103,7 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
             tempLine.append(curMapID)
         
         mapIdMatrix.append(tempLine)
-    
+
     return mapIdMatrix
 
 def mapIDToAmountString(mapIDMatrix,mapIdList):
@@ -109,25 +118,28 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
             
             block = _blockFinder(mapIDMatrix[y][x],mapIdList)
             
-            if block[0] not in usedBlocks:
+            if block[1] not in usedBlocks:
                 
-                usedBlocks[block[0]] = [1,block[1]]
+                usedBlocks[block[1]] = [1,block[0]]
             
             else:
-                usedBlocks[block[0]][0] += 1
+                usedBlocks[block[1]][0] += 1
     
     retString = "You need follwing amount of blocks\n"
     retString += "{:^40}{:^10}{:^10}\n".format("Blockname","BlockID","Amount")
     
-    for key in usedBlocks:
+    usedBlockKeys = list(usedBlocks.keys())
+    usedBlockKeys.sort(key = _sortkeyForUsedBlocks)
+    
+    for key in usedBlockKeys:
         
-        if "_" in usedBlocks[key][1]:
-            blockID =  usedBlocks[key][1].replace("_",":")
+        if "_" in key:
+            blockID =  key.replace("_",":")
         
         else:
-            blockID =  usedBlocks[key][1]
+            blockID =  key
             
-        retString += "{:^40}{:^10}{:^10}\n".format(key, blockID, str(usedBlocks[key][0]))
+        retString += "{:^40}{:^10}{:>10}\n".format(usedBlocks[key][1], blockID, str(usedBlocks[key][0]))
     
     return retString
     
@@ -181,7 +193,7 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
                     posY = positionMatrix[z-1][x][3] - 1
                 
                 
-                tempLine.append([workMatrix[z][x],x, height - z, posY])
+                tempLine.append([workMatrix[z][x],x, height - (z + 1), posY])
                 
                 
         positionMatrix.append(tempLine)
@@ -200,7 +212,7 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
 
                 zOffset = rnd.randint(0,min(10,z))
 
-                for deltaZ in range(0,len(positionMatrix) - zOffset):
+                for deltaZ in range(0,len(positionMatrix) - (z - zOffset)):
 
                     positionMatrix[z - zOffset + deltaZ][x][3] = minimumY + deltaZ
             
@@ -222,7 +234,7 @@ def positionMatrixToPositionString(positionMatrix,mapIDList):
                 curMapID = positionMatrix[z][x][0]
                 curBlock = _blockFinder(curMapID,mapIDList)[0]
                 
-            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[z][x][1] + 1,positionMatrix[z][x][2],positionMatrix[z][x][3])
+            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[z][x][1], positionMatrix[z][x][2],positionMatrix[z][x][3])
     
     return retString
 
@@ -254,12 +266,86 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
     
 
 
-def positionMatrixToSchematic(positionMatrix, mapIDList):
+def positionMatrixToTag_Compound(positionMatrix, mapIDList, minY, maxY):
+    
+    maxSchematicHeight = maxY - minY
+    lowestUsedY = maxY
+    highestUsedY = minY
+    length = len(positionMatrix)
+    width = len(positionMatrix[0])
+    curMapID = 0
+    curBlockID = 0
+    
+    blockList = []
+    blockDataList = []
+    
+    schematicCubix = [ [["0" for i in range(width)] for i in range(length)] for i in range(maxSchematicHeight)]
+    
+    for z in range(length):
+        
+        for x in range(width):
+            
+            if positionMatrix[z][x][0] != curMapID:
+                curMapID = positionMatrix[z][x][0]
+                curBlockID = _blockFinder(curMapID,mapIDList)[1]
+
+
+            
+            correctedY = positionMatrix[z][x][3] - minY
+            schematicCubix[correctedY][z][x] = curBlockID
+            
+            lowestUsedY = min(correctedY,lowestUsedY)
+            highestUsedY = max(correctedY, highestUsedY)
+            
+    if lowestUsedY > 0:
+        for i in range(lowestUsedY):
+            schematicCubix.pop(0)
+            
+    if highestUsedY < maxSchematicHeight:
+        for i in range(maxSchematicHeight - 1 - highestUsedY):
+            schematicCubix.pop()
+
+    schematicHeight = len(schematicCubix)
+    schematicLength = length
+    schematicWidth = width
+    
+    for y in range(schematicHeight):
+        
+        for z in range(schematicLength):
+            
+            for x in range(schematicWidth):
+                
+                blockID = schematicCubix[y][z][x]
+                
+                if "_" in blockID:
+                    blockID = blockID.split("_")
+                    blockList.append(int(blockID[0]))
+                    blockDataList.append(int(blockID[1]))
+                    
+                else:
+                    blockList.append(int(blockID))
+                    blockDataList.append(0)
+    
+    
+    #--------Building Tag_Compound-----------
+    
+    tagHeight = nbt.Tag_Short(name = "Height", shortInt = schematicHeight)
+    tagLength = nbt.Tag_Short(name = "Length", shortInt = schematicLength)
+    tagWidth = nbt.Tag_Short(name = "Width", shortInt = schematicWidth)
+    tagMaterials = nbt.Tag_String(name = "Materials", string = "Alpha")
+    tagEntities = nbt.Tag_List(name = "Entities")
+    tagTileEntities = nbt.Tag_List(name = "TileEntities")
+    tagBlocks = nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = blockList)
+    tagData = nbt.Tag_Byte_Array(name = "Data", arrayOfInts = blockDataList)
+    
+    return nbt.Tag_Compound(name = "Schematic", listOfTags = [tagHeight,tagLength,tagWidth,tagMaterials,tagEntities,tagTileEntities,tagBlocks,tagData])
     
     
     
     
-    return schematic
+    
+    
+    
 
 
 

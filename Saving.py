@@ -1,5 +1,7 @@
 import Parsers
 import os
+import nbt
+import gzip
 
 
 def saveAmountTxT(mapIDMatrix, mapIDList, name):
@@ -41,3 +43,21 @@ def saveImage(mapIDMatrix, mapIDList, name):
     with open("./save/" + name + "/" + name +"_endresult.bmp", "wb") as saveFile:
         
         imageToSave.save(saveFile, format = "BMP")
+        
+def saveSchematic(Tag_Compound, name):
+    
+    schematicToSave = gzip.compress(nbt.toByte(Tag_Compound))
+    
+    if not os.path.isdir("./save/" + name):
+        
+        if not os.path.isdir("./save"):
+            os.mkdir("./save/")
+        os.mkdir("./save/" + name + "/")
+        
+    with open("./save/" + name + "/" + name +".schematic", "wb") as saveFile:
+        
+        saveFile.write(schematicToSave)
+        
+    
+    
+    
