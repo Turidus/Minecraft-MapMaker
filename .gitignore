@@ -3,4 +3,5 @@
 *.jpg
 *.pyc
 save/
+testpictures/
 MapMaker_timed.py
