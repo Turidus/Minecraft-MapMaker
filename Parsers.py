@@ -6,6 +6,7 @@ import copy
 import random as rnd
 import nbt
 
+
 def _rgbDistance(rgbFromPixel,rgbFromList):
     
     rDif = rgbFromPixel[0] - rgbFromList[0]
@@ -59,13 +60,13 @@ def imageFileToRGBMatrix(pathString):
     
     rgbMatrix  = []
     
-    for y in range(img.height):
+    for x in range(img.height):
         
         tempLine = []
         
-        for x in range(img.width):
+        for z in range(img.width):
             
-            tempLine.append(img.getpixel((x,y)))
+            tempLine.append(img.getpixel((x,z)))
         
         rgbMatrix.append(tempLine)
         
@@ -77,23 +78,23 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
     curRGB = (-1,-1,-1)
     curMapID = "0"
 
-    for y in range(len(rgbMatrix)):
+    for x in range(len(rgbMatrix)):
         
         tempLine = []
         
-        for x in range(len(rgbMatrix[y])):
+        for z in range(len(rgbMatrix[x])):
             
-            if curRGB == rgbMatrix[y][x]:       #Pictures often have groups of pixels with the same value
+            if curRGB == rgbMatrix[x][z]:       #Pictures often have groups of pixels with the same value
                 tempLine.append(curMapID)       #This saves a loop through the MapIdList in that case
                 continue
             else:
-                curRGB = rgbMatrix[y][x]
+                curRGB = rgbMatrix[x][z]
             
             curDif = 450
             
             for entry in mapIdList:
                 
-                tempDif = _rgbDistance(rgbMatrix[y][x],entry[1])
+                tempDif = _rgbDistance(rgbMatrix[x][z],entry[1])
 
                 if tempDif < curDif:
                     
@@ -110,13 +111,13 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
     
     usedBlocks = {}
     
-    for y in range(len(mapIDMatrix)):
+    for x in range(len(mapIDMatrix)):
         
         
         
-        for x in range(len(mapIDMatrix[y])):
+        for z in range(len(mapIDMatrix[x])):
             
-            block = _blockFinder(mapIDMatrix[y][x],mapIdList)
+            block = _blockFinder(mapIDMatrix[x][z],mapIdList)
             
             if block[1] not in usedBlocks:
                 
@@ -146,76 +147,121 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
 def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     
     positionMatrix = []
-    startY = int((maximumY - minimumY) / 2)
-    
-    
-    height = len(mapIDMatrix) + 1 #+ 1 because there will be an additional line added to the matrix
-    width = len(mapIDMatrix[0])
+    startY = int((maximumY - minimumY) / 2) + minimumY
     
     workMatrix = copy.deepcopy(mapIDMatrix)
     
-    zeroLine = [] #This adds a additinal row of blocks into the map, to shade the first row of the image on the map correctly
-                    
+    #This inserts an additional block at the north end of each North-South line.
+    #This is needed to shade the first line of the image correctly.
+    for zLine in workMatrix: 
+        zLine.insert(0,44)
     
-    for zeroPosition in range(width):
-        zeroLine.append(44)
-    workMatrix.insert(0,zeroLine)
+    width = len(workMatrix) 
+    length = len(workMatrix[0]) 
     
-    
-    for z in range(height):
+
+    for x in range(width):
         
         tempLine = []
-        needsToBeRaised = False
         
-        for x in range(width):
+        for z in range(length):
             
             if z == 0:
-                tempLine.append([44,x,height,startY])
+                tempLine.append([44,x,length - 1,startY])
             
             else:
-                if int(workMatrix[z][x]) % 4 == 1:
-                    posY = positionMatrix[z-1][x][3]     
+                if int(workMatrix[x][z]) % 4 == 1:
+                    posY = tempLine[-1][3]    
                                   
-                elif int(workMatrix[z][x]) % 4 == 2:
+                elif int(workMatrix[x][z]) % 4 == 2:
                     
-                    posY = positionMatrix[z-1][x][3] + 1
+                    posY = tempLine[-1][3] + 1
                 
                 else:
-
-                    if not needsToBeRaised and positionMatrix[z-1][x][3] <= minimumY:
-                    #This prevents block from being placed under the minimum Y position 
-                    #0-5 are the bedrock level on survivale Maps
-
-                        #_addOneToAllY(positionMatrix)
-                        #for item in tempLine:
-                        #    item[3] += 1
-                        needsToBeRaised = True
-                    posY = positionMatrix[z-1][x][3] - 1
+                    if tempLine[-1][3] <= minimumY:
+                        for position in tempLine:
+                            position[3] += 1
+                    
+                    posY = tempLine[-1][3] - 1
                 
                 
-                tempLine.append([workMatrix[z][x],x, height - (z + 1), posY])
+                tempLine.append([workMatrix[x][z],x, length - (z + 1), posY])
                 
                 
         positionMatrix.append(tempLine)
-        if needsToBeRaised:
-            _addOneToAllY(positionMatrix)
+
+
+    #Second pass over the matrix to fix to high Y coordinates
     
-    #This breaks long runs that occure in big pictures and
-    #exeeds the height limit of 255 blocks on a minecraft map (or any given maximum Y position)
-    #It also leads to a mismatched color pixel on the map.
-    #To prevent this from lines in pictures with areas of similar colors, this is spread over a range of blocks
-    for x in range(len(positionMatrix[0])):
+    #First Step: Normalisation of each North-South column which are independend from each other,
+    #contrary to the West-East rows. At the end, each column has at least one block on
+    #the minimal Y coordiante.
+    for x in range(width):
+        lowestY = maximumY
         
-        for z in range(len(positionMatrix)):
+        for z in range(length):
             
-            if positionMatrix[z][x][3] >= maximumY:
-
-                zOffset = rnd.randint(0,min(10,z))
-
-                for deltaZ in range(0,len(positionMatrix) - (z - zOffset)):
-
-                    positionMatrix[z - zOffset + deltaZ][x][3] = minimumY + deltaZ
+            lowestY = min(lowestY,positionMatrix[x][z][3])
             
+        if lowestY > minimumY:
+            
+            yOffset = lowestY - minimumY
+            
+            for z in range(length):
+                    
+                positionMatrix[x][z][3] -= yOffset
+        
+    #Second Step: finding ranges of blocks in each line that are too high and force them to be lower
+    #than the maximum Y coordiante. This can lead to missmatched pixels inside the picture. To prevent
+    #this, use the highest Y coordiante possible.
+    yMaxOffset = maximumY - minimumY + 1
+    
+    for x in range(width):
+        exceedingY = False
+        inExceedingRange = False
+        rangeZValues = []
+        
+        for z in range(length):
+            
+            if positionMatrix[x][z][3] > maximumY and not inExceedingRange:
+                exceedingY = True
+                inExceedingRange = True
+                rangeZValues.append(z)
+                
+            elif positionMatrix[x][z][3] <= maximumY and inExceedingRange:
+                inExceedingRange = False
+                rangeZValues.append(z)
+                
+        if inExceedingRange:
+            rangeZValues.append(length)
+        
+        while exceedingY:
+            
+            for index in range(0,len(rangeZValues),2):
+                
+                for z in range(rangeZValues[index],rangeZValues[index + 1]):
+                    
+                    positionMatrix[x][z][3] -= yMaxOffset
+                    
+                    
+            exceedingY = False
+            inExceedingRange = False
+            rangeZValues = []
+            
+            for z in range(length):
+                
+                if positionMatrix[x][z][3] > maximumY and not inExceedingRange:
+
+                    exceedingY = True
+                    inExceedingRange = True
+                    rangeZValues.append(z)
+                    
+                elif positionMatrix[x][z][3] <= maximumY and inExceedingRange:
+                    inExceedingRange = False
+                    rangeZValues.append(z)
+                    
+            if inExceedingRange:
+                rangeZValues.append(length)
     
     return positionMatrix
 
@@ -228,13 +274,13 @@ def positionMatrixToPositionString(positionMatrix,mapIDList):
     curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
-    for x in range(len(positionMatrix[0])):
-        for z in range(len(positionMatrix)):
-            if positionMatrix[z][x][0] != curMapID:
-                curMapID = positionMatrix[z][x][0]
+    for x in range(len(positionMatrix)):
+        for z in range(len(positionMatrix[0])):
+            if positionMatrix[x][z][0] != curMapID:
+                curMapID = positionMatrix[x][z][0]
                 curBlock = _blockFinder(curMapID,mapIDList)[0]
                 
-            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[z][x][1], positionMatrix[z][x][2],positionMatrix[z][x][3])
+            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[x][z][1], positionMatrix[x][z][2],positionMatrix[x][z][3])
     
     return retString
 
@@ -245,22 +291,22 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
     curMapID = 0
     curRGB = (0,0,0)
     
-    image = Image.new("RGB", (len(mapIDMatrix[0]),len(mapIDMatrix)))
+    image = Image.new("RGB", (len(mapIDMatrix),len(mapIDMatrix[0])))
     
-    for y in range(len(mapIDMatrix)):
+    for x in range(len(mapIDMatrix)):
         
-        for x in range(len(mapIDMatrix[0])):
+        for z in range(len(mapIDMatrix[0])):
             
-            if curMapID != mapIDMatrix[y][x]:
+            if curMapID != mapIDMatrix[x][z]:
                 
                 for item in mapIDList:
                     
-                    if item[0] == mapIDMatrix[y][x]:
+                    if item[0] == mapIDMatrix[x][z]:
                         
                         curRGB = item[1]
                         break
             
-            image.putpixel((x,y),curRGB)
+            image.putpixel((x,z),curRGB)
             
     return image
     
@@ -269,37 +315,31 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
 def positionMatrixToTag_Compound(positionMatrix, mapIDList, minY, maxY):
     
     maxSchematicHeight = maxY - minY
-    lowestUsedY = maxY
     highestUsedY = minY
-    length = len(positionMatrix)
-    width = len(positionMatrix[0])
+    length = len(positionMatrix[0])
+    width = len(positionMatrix)
     curMapID = 0
     curBlockID = 0
     
     blockList = []
     blockDataList = []
     
-    schematicCubix = [ [["0" for i in range(width)] for i in range(length)] for i in range(maxSchematicHeight)]
+    schematicCubix = [ [["0" for i in range(width)] for i in range(length)] for i in range(maxSchematicHeight + 1)]
     
-    for z in range(length):
+    print
+    
+    for x in range(width):
         
-        for x in range(width):
+        for z in range(length):
             
-            if positionMatrix[z][x][0] != curMapID:
-                curMapID = positionMatrix[z][x][0]
+            if positionMatrix[x][z][0] != curMapID:
+                curMapID = positionMatrix[x][z][0]
                 curBlockID = _blockFinder(curMapID,mapIDList)[1]
 
 
-            
-            correctedY = positionMatrix[z][x][3] - minY
+            correctedY = positionMatrix[x][z][3] - minY
             schematicCubix[correctedY][z][x] = curBlockID
-            
-            lowestUsedY = min(correctedY,lowestUsedY)
             highestUsedY = max(correctedY, highestUsedY)
-            
-    if lowestUsedY > 0:
-        for i in range(lowestUsedY):
-            schematicCubix.pop(0)
             
     if highestUsedY < maxSchematicHeight:
         for i in range(maxSchematicHeight - 1 - highestUsedY):

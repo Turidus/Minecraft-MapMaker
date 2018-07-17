@@ -43,6 +43,9 @@ positionMatrixMinY = int(args.minY) if args.minY else 6
 
 positionMatrixMaxY = int(args.maxY) if args.maxY else 250
 
+if positionMatrixMinY >= positionMatrixMaxY - 3:
+    raise ValueError("minY and maxY are to close together (closer than 4) or minY is bigger than maxY")
+
 
 
 #Calculating intermediaries 
