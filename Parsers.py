@@ -312,7 +312,7 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
     
 
 
-def positionMatrixToTag_Compound(positionMatrix, mapIDList, minY, maxY):
+def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxSize):
     
     maxSchematicHeight = maxY - minY
     highestUsedY = minY
@@ -321,8 +321,7 @@ def positionMatrixToTag_Compound(positionMatrix, mapIDList, minY, maxY):
     curMapID = 0
     curBlockID = 0
     
-    blockList = []
-    blockDataList = []
+    
     
     schematicCubix = [ [["0" for i in range(width)] for i in range(length)] for i in range(maxSchematicHeight + 1)]
     
@@ -345,40 +344,67 @@ def positionMatrixToTag_Compound(positionMatrix, mapIDList, minY, maxY):
         for i in range(maxSchematicHeight - 1 - highestUsedY):
             schematicCubix.pop()
 
+    #Preparing data for building the Tag_Compounds.
+    #If the picture is bigger than 128 * 128, it will get cut in pices
+    #to make importing them easier. 
+    #Even so, you should use Fast asynchrone world edit or similar.
+    
     schematicHeight = len(schematicCubix)
     schematicLength = length
     schematicWidth = width
     
-    for y in range(schematicHeight):
+    lengthRanges = []
+    for i in range(int(schematicLength / maxSize) + 1):
+        lengthRanges.append(i * maxSize)
+    if lengthRanges[-1] < schematicLength:
+        lengthRanges.append(schematicLength)
+    
+    widthRanges = []
+    for i in range(int(schematicWidth / maxSize) + 1):
+        widthRanges.append(i * maxSize)
+    if widthRanges[-1] < schematicWidth:
+        widthRanges.append(schematicWidth)
+    tag_compound_list = []
+    
+    for rangeZ in range(1,len(lengthRanges)):
         
-        for z in range(schematicLength):
+        for rangeX in range(1,len(widthRanges)):
             
-            for x in range(schematicWidth):
+            blockList = []
+            blockDataList = []
+    
+            for y in range(schematicHeight):
                 
-                blockID = schematicCubix[y][z][x]
-                
-                if "_" in blockID:
-                    blockID = blockID.split("_")
-                    blockList.append(int(blockID[0]))
-                    blockDataList.append(int(blockID[1]))
+                for z in range(lengthRanges[rangeZ - 1],lengthRanges[rangeZ]):
                     
-                else:
-                    blockList.append(int(blockID))
-                    blockDataList.append(0)
-    
-    
-    #--------Building Tag_Compound-----------
-    
-    tagHeight = nbt.Tag_Short(name = "Height", shortInt = schematicHeight)
-    tagLength = nbt.Tag_Short(name = "Length", shortInt = schematicLength)
-    tagWidth = nbt.Tag_Short(name = "Width", shortInt = schematicWidth)
-    tagMaterials = nbt.Tag_String(name = "Materials", string = "Alpha")
-    tagEntities = nbt.Tag_List(name = "Entities")
-    tagTileEntities = nbt.Tag_List(name = "TileEntities")
-    tagBlocks = nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = blockList)
-    tagData = nbt.Tag_Byte_Array(name = "Data", arrayOfInts = blockDataList)
-    
-    return nbt.Tag_Compound(name = "Schematic", listOfTags = [tagHeight,tagLength,tagWidth,tagMaterials,tagEntities,tagTileEntities,tagBlocks,tagData])
+                    for x in range(widthRanges[rangeX - 1],widthRanges[rangeX]):
+                        
+                        blockID = schematicCubix[y][z][x]
+                        
+                        if "_" in blockID:
+                            blockID = blockID.split("_")
+                            blockList.append(int(blockID[0]))
+                            blockDataList.append(int(blockID[1]))
+                            
+                        else:
+                            blockList.append(int(blockID))
+                            blockDataList.append(0)
+            
+            
+            #--------Building Tag_Compound-----------
+            
+            tagHeight = nbt.Tag_Short(name = "Height", shortInt = schematicHeight)
+            tagLength = nbt.Tag_Short(name = "Length", shortInt = lengthRanges[rangeZ] - lengthRanges[rangeZ - 1])
+            tagWidth = nbt.Tag_Short(name = "Width", shortInt = widthRanges[rangeX] - widthRanges[rangeX - 1])
+            tagMaterials = nbt.Tag_String(name = "Materials", string = "Alpha")
+            tagEntities = nbt.Tag_List(name = "Entities")
+            tagTileEntities = nbt.Tag_List(name = "TileEntities")
+            tagBlocks = nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = blockList)
+            tagData = nbt.Tag_Byte_Array(name = "Data", arrayOfInts = blockDataList)
+            tagList = [tagHeight,tagLength,tagWidth,tagMaterials,tagEntities,tagTileEntities,tagBlocks,tagData]
+            
+            tag_compound_list.append(nbt.Tag_Compound(name = str(rangeZ - 1) + " " + str(rangeX - 1), listOfTags = tagList))
+    return tag_compound_list
     
     
     

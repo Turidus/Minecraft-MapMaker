@@ -115,17 +115,6 @@ def toByte(tagCompound):
     endByteArray += bytes(1)
     
     return endByteArray
-     
-"""
-tC = Tag_Compound(name = "test")
-tSt = Tag_String(name = "testString", string = "Hello World")
-tSh = Tag_Short(name = "testShort", shortInt = 5)
-tBA = Tag_Byte_Array(name = "testByteArray", arrayOfInts = [1,5,3,4])
-tL = Tag_List(name ="testList")
-tC.listOfTags = [tSh,tBA,tSt]
-tC.tagAppend(tL)
-toByte(tC)
- """
     
     
     

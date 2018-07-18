@@ -15,8 +15,9 @@ cmdparser.add_argument("-p", action="store_false", help = "If added, this will p
 cmdparser.add_argument("-bp", action="store_false", help = "If added, this will prevent the generation of a list of the block positions\n")
 cmdparser.add_argument("-ba", action="store_false", help = "If added, this will prevent the generation of a list of needed amounts of blocks\n")
 cmdparser.add_argument("-s", action="store_false", help = "If added, this will prevent the generation of the schematic file\n")
-cmdparser.add_argument("-minY", help = "Defines the minimum Y coordinate at which blocks are placed.\n Should be the block you will be standing on for impact schematics\n")
-cmdparser.add_argument("-maxY", help = "Defines the maximum Y coordinate at which blocks are placed. Does not impact schematics\n")
+cmdparser.add_argument("-minY", help = "Defines the minimum Y coordinate at which blocks are placed.\n Default = 4. Should be the block you will be standing on for schematics\n")
+cmdparser.add_argument("-maxY", help = "Defines the maximum Y coordinate at which blocks are placed. Default = 250. Does not impact schematics\n")
+cmdparser.add_argument("-maxS", help = "Defines the maximum sizie in X and Z of a schematic.\n Default = 128. If the picture is bigger, multiple schematics will be generated")
 
 
 args = cmdparser.parse_args()
@@ -39,12 +40,14 @@ else:
     mapIDList = MapIDGenerator.mapIDGenerator3D(args.bl)
 
 
-positionMatrixMinY = int(args.minY) if args.minY else 6
+positionMatrixMinY = int(args.minY) if args.minY else 4
 
 positionMatrixMaxY = int(args.maxY) if args.maxY else 250
 
 if positionMatrixMinY >= positionMatrixMaxY - 3:
     raise ValueError("minY and maxY are to close together (closer than 4) or minY is bigger than maxY")
+    
+maxSchematicSize = int(args.maxS) if args.maxS else 129
 
 
 
@@ -57,7 +60,7 @@ if args.bp or args.s:
     positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
 
 if args.s:
-    tag_Compound = Parsers.positionMatrixToTag_Compound(positionMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
+    tag_Compound = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
 
 
 #Calculating and saving results
