@@ -1,9 +1,9 @@
 # Minecraft-MapMaker
 
-This is a program that takes an image and generates multiple files that aid in the generation of Minecraft maps that
-display this image. Contrary to other programs, this does not generate the maps itself.
+This program takes an image and generates multiple files that aid in the generation of Minecraft maps displaying
+this image. Contrary to other programs, this does not generate the maps itself.
 
-This program can work with the stepped method of building maps, using the full 153 map colors available to
+This program can work with the stepped method, using the full 153 map colors available to
 ingame generated maps.
 
 ## Generated Files
