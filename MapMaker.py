@@ -81,7 +81,7 @@ if args.bp or args.s:
     
 if args.s:
     print("Calculating Schematic")
-    tag_Compound = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
+    tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
     print("Done")
 
 #Calculating and saving results
@@ -100,7 +100,7 @@ if args.p:
     
 if args.s:
     print("Saving Schematic")
-    Saving.saveSchematic(tag_Compound, imageName)
+    Saving.saveSchematic(tag_Compound_List, imageName)
     
 print("Finished with this image")
 

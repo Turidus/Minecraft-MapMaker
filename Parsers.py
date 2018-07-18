@@ -211,9 +211,9 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
                     
                 positionMatrix[x][z][3] -= yOffset
         
-    #Second Step: finding ranges of blocks in each line that are too high and force them to be lower
-    #than the maximum Y coordiante. This can lead to missmatched pixels inside the picture. To prevent
-    #this, use the highest Y coordiante possible.
+    #Second Step: finding all ranges of blocks in each line that are too high and force them to be lower
+    #than the maximum Y coordiante. This can lead to missmatched pixels inside the picture.
+    #See Readme for additional information
     yMaxOffset = maximumY - minimumY + 1
     
     for x in range(width):
@@ -345,9 +345,10 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxS
             schematicCubix.pop()
 
     #Preparing data for building the Tag_Compounds.
-    #If the picture is bigger than 128 * 128, it will get cut in pices
+    #If the picture is bigger than maxSize, it will get cut in pices
     #to make importing them easier. 
     #Even so, you should use Fast asynchrone world edit or similar.
+    #See Readme for additional information
     
     schematicHeight = len(schematicCubix)
     schematicLength = length
