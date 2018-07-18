@@ -67,7 +67,7 @@ The files will be saved into ./save/name.
    This option lets you choose the maximum Y coordinate for your block position file. If maxY is smaller than your image height,
    this can lead to pixel errors on the map (see "About very large images" below). Needs to be at least 4 bigger than **-minY**
    
-+ *-maxS* 0<=Integer (Default: 129)  
++ *-maxS* 0<Integer (Default: 129)  
    This option will let you define the maximum size a schematic will have. A to big schematic can seriously impact your server
    when importing the schematic. If the image is bigger than the maximum size of the schematic, the schematic will be split
    into multiple schematics with at most maxS x maxS size. (see "About large images" below)
