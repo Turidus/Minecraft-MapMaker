@@ -36,9 +36,8 @@ python MapMaker_GUI.py
 Innerhalb der GUI können alle Optionen angepasst werden.
 
 ### From MapMaker_GUI.exe
-**only tested for Windows 10 64bit** 
-Diese Programm kann auch über eine exe gestartet werden. Dafür muss MinecraftMapMaker_exe.zip(https://github.com/Turidus/Minecraft-MapMaker/releases)
-runtergeladen und entpackt werden. Das Programm wird mit Hilfe von MapMaker_GUI.exe gestartet.
+**only tested for Windows 10 64bit**  
+Diese Programm kann auch über eine exe gestartet werden. Dafür muss MinecraftMapMaker_exe.zip(https://github.com/Turidus/Minecraft-MapMaker/releases) runtergeladen und entpackt werden. Das Programm wird mit Hilfe von MapMaker_GUI.exe gestartet.
 
 Kein Python oder andere Abhängigkeit wird benötigt.
 
@@ -62,7 +61,7 @@ Wenn angegeben wird **keine** Textdatei mit Anzahl und Typ von Blöcken generier
 + *-s* 
 Wenn angegeben wird **keine** Schematic generiert.
 + *-minY* 0<=Integer<=251 (Default: 4) 
-Diese Option setzt die niedrigste Y koordiante fest. Wenn die Schematic genutzt werden soll, sollte minY dem Blocklevel
+Diese Option setzt die niedrigste Y koordiante fest. Wenn die Schematic genutzt werden soll, sollte **minY** dem Blocklevel
 entsprechen auf dem die Schematic eingefügt wird.
 Muss mindestens 4 kleiner sein als **maxY**
 + *-maxY* 4<=Integer<=255 (Default: 250)
@@ -82,13 +81,12 @@ der Cobblestone auch mit einem anderen Block ersetzt werden, der besser in die U
 ## Über große Bilder
 Große Bilder, 128 x 128 Pixels und größer, können die Performance des Servers beim Einfügen stark beeinträchtigen.
 Es sollte unbedingt Fast Asynchron World Edit oder ähnliches genutzt werden. Es es außerdem förderlich, die Schematic aufzuteilen,
-indem ein kleineres maxS gewählt wird.
+indem ein kleineres **maxS** gewählt wird.
 
 ## Über sehr große Bilder
 Sehr große Bilder, 250 x 250 pixels und größer, haben zusätzlich das Problem, dass sie evt. die maximale Welthöhe von 256
 Blöcken überschreiten können. Insbesondere wenn das Bild sehr einfarbig ist oder besonders groß (~450 x 450 pixels und größer)
-würde eine perfekte Repräsentation des Bildes mehr als 256 Blöcke brauchen. Um zu verhindern, dass das Bild **maxY** überschreitet, zwingt
-dieses Programm alle Blöcke über dem Höhenlimit unter dieses, was allerdings zu Pixelfehlern führen würde.
+würde eine perfekte Repräsentation des Bildes mehr als 256 Blöcke brauchen. Um zu verhindern, dass das Bild **maxY** überschreitet, zwingt dieses Programm alle Blöcke über dem Höhenlimit unter dieses, was allerdings zu Pixelfehlern führen würde.
 Dies fällt besonders bei eher einfarbigen Bildern auf, sehr bunte Bilder sind nicht so stark betroffen.
 
 Außer die **-maxY** größer als die Bildhöhe zu setzten ist der beste Weg, damit umzugehen, das Bild in ImageSizeX x 256 oder gar
@@ -97,7 +95,7 @@ zusammen zu fügen.
 
 
 ## Über (mehrere) Schematics
-Die Schematic expandiert von dem Block auf dem man steht in Richtung **Osten** und **Süd**. Wenn eine Schematic zwischen (0,0)
+Die Schematic expandiert von dem Block auf dem man steht in Richtung **Osten** und **Süden**. Wenn eine Schematic zwischen (0,0)
 und (128,128) platziert werden soll, muss man sich auf (0,0) stellen. Wenn mehrere Schematics generiert werden, werden sie
 nach ihrer relativen Platzierung zueinander benannt. PartX0Z1 liegt östlich von partX0Z0, 
 partX1Z0 südlich von X0Z0.
