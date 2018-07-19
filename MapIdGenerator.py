@@ -49,5 +49,5 @@ def mapIDGenerator2D(blackList = []):
         
         mapIDList.append([int(entry[0]) * 4 + 1, rgbList220, entry[2], entry[3]])
     
-    
+    print(mapIDList)
     return mapIDList

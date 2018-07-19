@@ -18,9 +18,11 @@ def _rgbDistance(rgbFromPixel,rgbFromList):
 def _blockFinder(mapID,mapIdList):
     
     for entry in mapIdList:
-        
         if entry[0] == mapID:
             return entry[2:]
+    
+
+    raise IOError
             
 def _openImage(pathString):
     
@@ -154,10 +156,10 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     #This inserts an additional block at the north end of each North-South line.
     #This is needed to shade the first line of the image correctly.
     for zLine in workMatrix: 
-        zLine.insert(0,44)
+        zLine.insert(0,45)
     
     width = len(workMatrix) 
-    length = len(workMatrix[0]) 
+    length = len(workMatrix[0])
     
 
     for x in range(width):
@@ -167,7 +169,7 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
         for z in range(length):
             
             if z == 0:
-                tempLine.append([44,x,length - 1,startY])
+                tempLine.append([45,x,length - 1,startY])
             
             else:
                 if int(workMatrix[x][z]) % 4 == 1:
@@ -270,7 +272,7 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     
 def positionMatrixToPositionString(positionMatrix,mapIDList):
     
-    curMapID = 44
+    curMapID = 45
     curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
@@ -290,7 +292,7 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
     
     curMapID = 0
     curRGB = (0,0,0)
-    
+
     image = Image.new("RGB", (len(mapIDMatrix),len(mapIDMatrix[0])))
     
     for x in range(len(mapIDMatrix)):
@@ -325,7 +327,6 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxS
     
     schematicCubix = [ [["0" for i in range(width)] for i in range(length)] for i in range(maxSchematicHeight + 1)]
     
-    print
     
     for x in range(width):
         
