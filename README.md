@@ -88,7 +88,7 @@ When you built/import the construct, you will notice that
 there is an **additional line** at the *north* end, made out of cobblestone. This is necessary to prevent
 the first line of the image to be miscolored.  
 One easy way to deal with this additional line is to place it just out of range of the map, which prevents it from being rendered.
-Another way is to replace the line of cobblestones to something that blends with the environment.
+Another way is to replace the line of cobblestones with something that blends with the environment.
 
 ## About large images
 Large images, 128 x 128 pixels and larger, can heavily impact your server when you import schematics. You should consider using Fast
