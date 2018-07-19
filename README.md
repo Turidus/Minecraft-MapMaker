@@ -18,21 +18,31 @@ ingame generated maps.
    
 ## Usage
 
-This program is a Python 3.6 program that depends on [Pillow 5.2](https://pillow.readthedocs.io/en/5.2.x/)
-To use this program, you have to have Python 3.6 and Pillow installed.
+### From source code
+This program is a Python 3.6 program that depends on [Pillow 5.2](https://pillow.readthedocs.io/en/5.2.x/) and
+[appJar](http://appjar.info/).
+To use this program, you have to have Python 3.6, Pillow and appJar installed.
 
 After downloading the source code, you can execute the code with a command line tool.
 ```powershell
    python MapMaker.py "pathToFile" [optional Arguments]
 ```   
-This will generate the above mentioned files. When you built/import the construct, you will notice that
-there is an **additional line** at the *north* end, made out of cobblestone. This is necessary to prevent
-the first line of the image to be miscolored.  
-One easy way to deal with this additional line is to place it just out of range of the map, which prevents it from being rendered.
-Another way is to replace the line of cobblestones to something that blends with the environment.
+This will generate the above mentioned files. 
 
 The files will be saved into "pathToMapMaker.py"/save/name
-   
+
+### GUI
+You can also use the provided GUI by calling MapMaker_GUI.py
+```powershell
+   python MapMaker_GUI.py
+```   
+You can still configure all the arguments inside the GUI
+
+### From MapMaker_GUI.exe
+**only tested for Windows 10 64bit**
+You can also download the zip file (MinecraftMapMaker.zip). After unpacking this file into a folder of your choice,
+you can simply start by using the MapMaker_GUI.exe. No need for Python at all.
+
 ### Optional Arguments:
 
 + *-bl* BaseColorID BaseColorID ...  
@@ -71,7 +81,13 @@ The files will be saved into "pathToMapMaker.py"/save/name
    This option will let you define the maximum size a schematic will have. A to big schematic can seriously impact your server
    when importing the schematic. If the image is bigger than the maximum size of the schematic, the schematic will be split
    into multiple schematics with at most maxS x maxS size. (see "About large images" below)
-   
+
+## The cobblestone line
+When you built/import the construct, you will notice that
+there is an **additional line** at the *north* end, made out of cobblestone. This is necessary to prevent
+the first line of the image to be miscolored.  
+One easy way to deal with this additional line is to place it just out of range of the map, which prevents it from being rendered.
+Another way is to replace the line of cobblestones to something that blends with the environment.
 
 ## About large images
 Large images, 128 x 128 pixels and larger, can heavily impact your server when you import schematics. You should consider using Fast
