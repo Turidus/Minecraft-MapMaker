@@ -39,7 +39,7 @@ You can also use the provided GUI by calling MapMaker_GUI.py
 You can still configure all the arguments inside the GUI
 
 ### From MapMaker_GUI.exe
-**only tested for Windows 10 64bit**
+**only tested for Windows 10 64bit**  
 You can also download the zip file (MinecraftMapMaker.zip). After unpacking this file into a folder of your choice,
 you can simply start by using the MapMaker_GUI.exe. No need for Python at all.
 
@@ -82,7 +82,7 @@ you can simply start by using the MapMaker_GUI.exe. No need for Python at all.
    when importing the schematic. If the image is bigger than the maximum size of the schematic, the schematic will be split
    into multiple schematics with at most maxS x maxS size. (see "About large images" below)
 
-## The cobblestone line
+## About the cobblestone line
 When you built/import the construct, you will notice that
 there is an **additional line** at the *north* end, made out of cobblestone. This is necessary to prevent
 the first line of the image to be miscolored.  
