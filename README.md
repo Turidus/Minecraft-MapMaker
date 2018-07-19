@@ -25,13 +25,13 @@ After downloading the source code, you can execute the code with a command line 
 ```powershell
    python MapMaker.py "pathToFile" [optional Arguments]
 ```   
-This will generate the above mentioned files. When you built/import the construct or look at the preview image,
-you will notice that there is an **additional line** at the *north* end, made out of cobblestone. This is necessary to prevent
+This will generate the above mentioned files. When you built/import the construct, you will notice that
+there is an **additional line** at the *north* end, made out of cobblestone. This is necessary to prevent
 the first line of the image to be miscolored.  
 One easy way to deal with this additional line is to place it just out of range of the map, which prevents it from being rendered.
 Another way is to replace the line of cobblestones to something that blends with the environment.
 
-The files will be saved into ./save/name
+The files will be saved into "pathToMapMaker.py"/save/name
    
 ### Optional Arguments:
 
