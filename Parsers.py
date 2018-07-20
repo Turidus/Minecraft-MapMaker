@@ -23,6 +23,9 @@ def _blockFinder(mapID,mapIdList):
     
 
     raise IOError
+    
+def _mapIDThreadWorker():
+    pass
             
 def _openImage(pathString):
     
@@ -76,21 +79,20 @@ def imageFileToRGBMatrix(pathString):
     
 def rgbMatrixToMapID(rgbMatrix, mapIdList):
     
-    mapIdMatrix = []
-    curRGB = (-1,-1,-1)
-    curMapID = "0"
+    length = len(rgbMatrix[0])
+    width = len(rgbMatrix)
+    
+    mapIdMatrix = [[0 for i in range(length)] for i in range(width)]
+    
+    knownResults = {}
 
-    for x in range(len(rgbMatrix)):
+    for x in range(width):
         
-        tempLine = []
-        
-        for z in range(len(rgbMatrix[x])):
+        for z in range(length):
             
-            if curRGB == rgbMatrix[x][z]:       #Pictures often have groups of pixels with the same value
-                tempLine.append(curMapID)       #This saves a loop through the MapIdList in that case
+            if rgbMatrix[x][z] in knownResults:
+                mapIdMatrix[x][z] = knownResults[rgbMatrix[x][z]]
                 continue
-            else:
-                curRGB = rgbMatrix[x][z]
             
             curDif = 450
             
@@ -102,10 +104,9 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
                     
                     curDif = tempDif
                     curMapID = entry[0]
-                
-            tempLine.append(curMapID)
-        
-        mapIdMatrix.append(tempLine)
+            
+            knownResults[rgbMatrix[x][z]] = curMapID
+            mapIdMatrix[x][z] = curMapID
 
     return mapIdMatrix
 
