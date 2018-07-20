@@ -14,18 +14,13 @@ def _rgbDistance(rgbFromPixel,rgbFromList):
     bDif = rgbFromPixel[2] - rgbFromList[2]
     
     return sqrt( rDif ** 2 + gDif ** 2 + bDif ** 2)
-    
-def _blockFinder(mapID,mapIdList):
-    
-    for entry in mapIdList:
-        if entry[0] == mapID:
-            return entry[2:]
-    
 
-    raise IOError
-    
+
+ 
 def _mapIDThreadWorker():
     pass
+    
+
             
 def _openImage(pathString):
     
@@ -38,10 +33,6 @@ def _openImage(pathString):
     
     return img
     
-def _addOneToAllY(positionMatrix):
-    for z in range(len(positionMatrix)):
-        for x in range(len(positionMatrix[z])):
-            positionMatrix[z][x][3] += 1
             
 def _sortkeyForUsedBlocks(string):
     
@@ -77,7 +68,7 @@ def imageFileToRGBMatrix(pathString):
         
     return rgbMatrix
     
-def rgbMatrixToMapID(rgbMatrix, mapIdList):
+def rgbMatrixToMapID(rgbMatrix, mapIDDic):
     
     length = len(rgbMatrix[0])
     width = len(rgbMatrix)
@@ -96,21 +87,21 @@ def rgbMatrixToMapID(rgbMatrix, mapIdList):
             
             curDif = 450
             
-            for entry in mapIdList:
+            for entry in mapIDDic:
                 
-                tempDif = _rgbDistance(rgbMatrix[x][z],entry[1])
+                tempDif = _rgbDistance(rgbMatrix[x][z],mapIDDic[entry][0])
 
                 if tempDif < curDif:
                     
                     curDif = tempDif
-                    curMapID = entry[0]
+                    curMapID = entry
             
             knownResults[rgbMatrix[x][z]] = curMapID
             mapIdMatrix[x][z] = curMapID
 
     return mapIdMatrix
 
-def mapIDToAmountString(mapIDMatrix,mapIdList):
+def mapIDToAmountString(mapIDMatrix,mapIDDic):
     
     usedBlocks = {}
     
@@ -120,14 +111,14 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
         
         for z in range(len(mapIDMatrix[x])):
             
-            block = _blockFinder(mapIDMatrix[x][z],mapIdList)
+            block = mapIDDic[mapIDMatrix[x][z]]
             
-            if block[1] not in usedBlocks:
+            if block[2] not in usedBlocks:
                 
-                usedBlocks[block[1]] = [1,block[0]]
+                usedBlocks[block[2]] = [1,block[1]]
             
             else:
-                usedBlocks[block[1]][0] += 1
+                usedBlocks[block[2]][0] += 1
     
     retString = "You need follwing amount of blocks\n"
     retString += "{:^40}{:^10}{:^10}\n".format("Blockname","BlockID","Amount")
@@ -147,7 +138,7 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
     
     return retString
     
-def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
+def mapIDToPositionMatrix(mapIDMatrix, minimumY = 6,maximumY = 250):
     
     positionMatrix = []
     startY = int((maximumY - minimumY) / 2) + minimumY
@@ -271,28 +262,23 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     
 
     
-def positionMatrixToPositionString(positionMatrix,mapIDList):
+def positionMatrixToPositionString(positionMatrix,mapIDDic):
     
-    curMapID = 45
-    curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
     for x in range(len(positionMatrix)):
+        
         for z in range(len(positionMatrix[0])):
-            if positionMatrix[x][z][0] != curMapID:
-                curMapID = positionMatrix[x][z][0]
-                curBlock = _blockFinder(curMapID,mapIDList)[0]
-                
-            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[x][z][1], positionMatrix[x][z][2],positionMatrix[x][z][3])
+            
+            position = positionMatrix[x][z]
+            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(mapIDDic[position[0]][1],position[1], position[2],position[3])
     
     return retString
 
 
 
-def mapIDToPicture(mapIDMatrix, mapIDList):
+def mapIDToPicture(mapIDMatrix, mapIDDic):
     
-    curMapID = 0
-    curRGB = (0,0,0)
 
     image = Image.new("RGB", (len(mapIDMatrix),len(mapIDMatrix[0])))
     
@@ -300,29 +286,18 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
         
         for z in range(len(mapIDMatrix[0])):
             
-            if curMapID != mapIDMatrix[x][z]:
-                
-                for item in mapIDList:
-                    
-                    if item[0] == mapIDMatrix[x][z]:
-                        
-                        curRGB = item[1]
-                        break
-            
-            image.putpixel((x,z),curRGB)
+            image.putpixel((x,z), mapIDDic[mapIDMatrix[x][z]][0])
             
     return image
     
 
 
-def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxSize):
+def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSize):
     
     maxSchematicHeight = maxY - minY
     highestUsedY = minY
     length = len(positionMatrix[0])
     width = len(positionMatrix)
-    curMapID = 0
-    curBlockID = 0
     
     
     
@@ -332,14 +307,11 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxS
     for x in range(width):
         
         for z in range(length):
-            
-            if positionMatrix[x][z][0] != curMapID:
-                curMapID = positionMatrix[x][z][0]
-                curBlockID = _blockFinder(curMapID,mapIDList)[1]
-
 
             correctedY = positionMatrix[x][z][3] - minY
-            schematicCubix[correctedY][z][x] = curBlockID
+
+            schematicCubix[correctedY][z][x] = mapIDDic[positionMatrix[x][z][0]][2]
+
             highestUsedY = max(correctedY, highestUsedY)
             
     if highestUsedY < maxSchematicHeight:

@@ -9,7 +9,7 @@ def mapIDGenerator3D(blackList = []):
     with open("BaseColorIds.txt","r") as baseIDFile:
         baseIDList = baseIDFile.read().splitlines()
     
-    mapIDList = []
+    mapIDDic = {}
     baseIDList.pop(0)
     
     for entry in baseIDList:
@@ -23,19 +23,19 @@ def mapIDGenerator3D(blackList = []):
         rgbList220 = (mult220(int(rgbList[0])), mult220(int(rgbList[1])), mult220(int(rgbList[2])))
         rgbList255 = (int(rgbList[0]), int(rgbList[1]), int(rgbList[2]))
         
-        mapIDList.append([int(entry[0]) * 4, rgbList180, entry[2], entry[3]])
-        mapIDList.append([int(entry[0]) * 4 + 1, rgbList220, entry[2], entry[3]])
-        mapIDList.append([int(entry[0]) * 4 + 2, rgbList255, entry[2], entry[3]])
+        mapIDDic[int(entry[0]) * 4] = (rgbList180, entry[2], entry[3])
+        mapIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
+        mapIDDic[int(entry[0]) * 4 + 2] = (rgbList255, entry[2], entry[3])
     
     
-    return mapIDList
+    return mapIDDic
 
 def mapIDGenerator2D(blackList = []):
     
     with open("BaseColorIds.txt","r") as baseIDFile:
         baseIDList = baseIDFile.read().splitlines()
     
-    mapIDList = []
+    mapIDDic = {}
     baseIDList.pop(0)
     
     for entry in baseIDList:
@@ -47,7 +47,6 @@ def mapIDGenerator2D(blackList = []):
         
         rgbList220 = (mult220(int(rgbList[0])), mult220(int(rgbList[1])), mult220(int(rgbList[2])))
         
-        mapIDList.append([int(entry[0]) * 4 + 1, rgbList220, entry[2], entry[3]])
+        mapIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
     
-    print(mapIDList)
-    return mapIDList
+    return mapIDDic

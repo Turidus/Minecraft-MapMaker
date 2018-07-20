@@ -23,9 +23,9 @@ def MapMaker(args):
         imageName = re.sub(r'[^a-zA-Z0-9_]', '', args.n)
     
     if args.twoD:
-        mapIDList = MapIDGenerator.mapIDGenerator2D(args.bl)
+        mapIDDic = MapIDGenerator.mapIDGenerator2D(args.bl)
     else:
-        mapIDList = MapIDGenerator.mapIDGenerator3D(args.bl)
+        mapIDDic = MapIDGenerator.mapIDGenerator3D(args.bl)
     
     
     positionMatrixMinY = int(args.minY) if args.minY else 4
@@ -56,17 +56,17 @@ def MapMaker(args):
     print("Done")
     
     print("Calculating mapIDMatrix")
-    mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDList)
+    mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDDic)
     print("Done")
     
     if args.bp or args.s:
         print("Calculating positionMatrix")
-        positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY)
+        positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, positionMatrixMinY, positionMatrixMaxY)
         print("Done")
         
     if args.s:
         print("Calculating Schematic")
-        tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDList, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
+        tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
         print("Done")
     
     #Calculating and saving results
@@ -74,17 +74,17 @@ def MapMaker(args):
     try:
         if args.ba:
             print("Saving AmountTXT")
-            Saving.saveAmountTxT(mapIDMatrix,mapIDList,imageName)
+            Saving.saveAmountTxT(mapIDMatrix,mapIDDic,imageName)
     except:
         print("uhihihi")
     
     if args.bp:
         print("Saving PositionTXT")
-        Saving.saveBlockPositionTxT(positionMatrix,mapIDList, imageName)
+        Saving.saveBlockPositionTxT(positionMatrix,mapIDDic, imageName)
     
     if args.p:
         print("Saving Image")
-        Saving.saveImage(mapIDMatrix, mapIDList, imageName)
+        Saving.saveImage(mapIDMatrix, mapIDDic, imageName)
         
     if args.s:
         print("Saving Schematic")
