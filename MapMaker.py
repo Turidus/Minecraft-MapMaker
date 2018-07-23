@@ -5,12 +5,39 @@ import pickle
 import os
 import argparse
 import re
+import queue
 
 
-def MapMaker(args):
-    #Settings
-    print("Setting up")
+
+def MapMaker(args, outPrioQueue = None):
+    #Managing communication with GUI
     
+    class Prio():
+        prio: int = -1
+        
+        def add_get(self):
+            
+            self.prio += 1
+            
+            return self.prio
+    
+    def print2(tulpe):
+        
+        print(tulpe[1])
+    
+    priority = Prio()
+    
+    if outPrioQueue == None:
+        
+        newPrint = print2
+        
+    else:
+        
+        newPrint = outPrioQueue.put
+        
+    #Settings
+
+    newPrint((priority.add_get(),"Setting up"))
     
     imagePath = os.path.abspath(args.pathToImage)
     
@@ -39,58 +66,73 @@ def MapMaker(args):
         raise ValueError("maxY is smaller 4 or bigger 255")
     
     if positionMatrixMinY >= positionMatrixMaxY - 3:
-        raise ValueError("minY and maxY are to close together (closer than 4) or minY is bigger than maxY")
+        raise ValueError("minY and maxY are to close toadd_gether (closer than 4) or minY is bigger than maxY")
         
     maxSchematicSize = int(args.maxS) if args.maxS else 129
     
     if maxSchematicSize < 1:
         raise ValueError("maxS is smaller than 1")
     elif maxSchematicSize > 129:
-        print("Your schematic size is bigger 129. be careful when importing such large schematics")
+        newPrint((priority.add_get(),"Your schematic size is bigger 129. be careful when importing such large schematics"))
     
-    print("Finished setting up")
+    
+
+    newPrint((priority.add_get(),"Finished setting up"))
+
     
     #Calculating intermediaries
-    print("Calculating rgbMatrix")
+
+
+    newPrint((priority.add_get(),"Calculating rgbMatrix"))
+        
     rgbMatrix = Parsers.imageFileToRGBMatrix(imagePath)
-    print("Done")
     
-    print("Calculating mapIDMatrix")
+    
+
+    newPrint((priority.add_get(),"Done"))
+
+    
+    newPrint((priority.add_get(),"Calculating mapIDMatrix"))
     mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDDic)
-    print("Done")
+    
+
+    newPrint((priority.add_get(),"Done"))
+
     
     if args.bp or args.s:
-        print("Calculating positionMatrix")
+        newPrint((priority.add_get(),"Calculating positionMatrix"))
         positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, positionMatrixMinY, positionMatrixMaxY)
-        print("Done")
+    
+
+    newPrint((priority.add_get(),"Done"))
+
         
     if args.s:
-        print("Calculating Schematic")
+        newPrint((priority.add_get(), "Calculating Schematic"))
         tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
-        print("Done")
+        newPrint((priority.add_get(),"Done"))
     
     #Calculating and saving results
     
-    try:
-        if args.ba:
-            print("Saving AmountTXT")
-            Saving.saveAmountTxT(mapIDMatrix,mapIDDic,imageName)
-    except:
-        print("uhihihi")
+
+    if args.ba:
+        newPrint((priority.add_get(),"Saving AmountTXT"))
+        Saving.saveAmountTxT(mapIDMatrix,mapIDDic,imageName)
+
     
     if args.bp:
-        print("Saving PositionTXT")
+        newPrint((priority.add_get(),"Saving PositionTXT"))
         Saving.saveBlockPositionTxT(positionMatrix,mapIDDic, imageName)
     
     if args.p:
-        print("Saving Image")
+        newPrint((priority.add_get(),"Saving Image"))
         Saving.saveImage(mapIDMatrix, mapIDDic, imageName)
         
     if args.s:
-        print("Saving Schematic")
+        newPrint((priority.add_get(),"Saving Schematic"))
         Saving.saveSchematic(tag_Compound_List, imageName)
         
-    print("Finished with this image")
+    newPrint((priority.add_get(),"Finished with this image"))
 
 if __name__ == "__main__":
     cmdparser = argparse.ArgumentParser(description="This procesess image files into multiple files\nthat help to build minecraft ingame maps.")
