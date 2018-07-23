@@ -83,28 +83,20 @@ def MapMaker(args, outPrioQueue = None):
     #Calculating intermediaries
 
 
-    newPrint((priority.add_get(),"Calculating rgbMatrix"))
-        
+    newPrint((priority.add_get(),"Calculating rgbMatrix"))  
     rgbMatrix = Parsers.imageFileToRGBMatrix(imagePath)
-    
-    
-
     newPrint((priority.add_get(),"Done"))
 
     
     newPrint((priority.add_get(),"Calculating mapIDMatrix"))
     mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDDic)
-    
-
     newPrint((priority.add_get(),"Done"))
 
     
     if args.bp or args.s:
         newPrint((priority.add_get(),"Calculating positionMatrix"))
         positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, positionMatrixMinY, positionMatrixMaxY)
-    
-
-    newPrint((priority.add_get(),"Done"))
+        newPrint((priority.add_get(),"Done"))
 
         
     if args.s:

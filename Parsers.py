@@ -5,14 +5,11 @@ import io
 import sys
 import copy
 import random as rnd
-import threading
-import queue
-import multiprocessing as mupro
 
 import nbt
 
 
-_maxThreads = max(1, os.cpu_count() -1)
+_maxProc = max(1, os.cpu_count() -1)
 
 def _rgbDistance(rgbFromPixel,rgbFromList):
     
@@ -42,6 +39,9 @@ def _sortkeyForUsedBlocks(string):
     else:
         splitString = string.split("_")
         return (int(splitString[0]),int(splitString[1]))
+        
+        
+    
     
 def imageFileToRGBMatrix(pathString):
     
@@ -139,135 +139,11 @@ def mapIDToAmountString(mapIDMatrix,mapIDDic):
     
     return retString
     
+
+    
 def mapIDToPositionMatrix(mapIDMatrix, minimumY = 6,maximumY = 250):
     
-    def _positionWorker():
-        
-        while True:
-        
-            input = inQueue.get()
-            
-            if input == None:
-                inQueue.task_done()
-                break
-            
-            elif input[0] == 0:
-                
-                #Input looks like (flag, list, x coordinate, startY)
-                inList = input[1]
-                threadLength = len(inList)
-                outList = [None for index in range(threadLength)]
-                
-                for z in range(threadLength):
-                    
-                    if z == 0:
-                        outList[z] = [45,input[2],threadLength - 1,input[3]]
-                    
-                    else:
-                        if int(inList[z]) % 4 == 1:
-                            posY = outList[z - 1][3]    
-                                        
-                        elif int(inList[z]) % 4 == 2:
-                            
-                            posY = outList[z - 1][3] + 1
-                        
-                        else:
-                            if outList[z - 1][3] <= minimumY:
-                                for zDone in range(z):
-                                    outList[zDone][3] += 1
-                            
-                            posY = outList[z - 1][3] - 1
-                        
-                        
-                        outList[z] = [inList[z],input[2], threadLength - (z + 1), posY]
-                
-                outQueue.put((outList,input[2]))
-                inQueue.task_done()
-                
-            elif input[0] == 1:
-
-                #Input looks like (flag, list, x coordinate, miniumY, maxinum Y)
-                inList = input[1]                
-                threadLength = len(inList)
-                lowestY = input[4]
-                
-                for z in range(threadLength):
-                    
-                    lowestY = min(lowestY,inList[z][3])
-                    
-                if lowestY > input[3]:
-                    
-                    yOffset = lowestY - input[3]
-                    
-                    for z in range(threadLength):
-                            
-                        inList[z][3] -= yOffset
-                
-                outQueue.put((inList,input[2]))
-                inQueue.task_done()
-                
-                
-            elif input[0] == 2:
-                
-                #Input looks like (flag, list, xCoordinate, miniumY, maxinum Y)
-                inList = input[1]
-                threadLength = len(inList)
-                
-                exceedingY = False
-                inExceedingRange = False
-                rangeZValues = []
-                
-                for z in range(threadLength):
-                    
-                    if inList[z][3] > input[4] and not inExceedingRange:
-                        exceedingY = True
-                        inExceedingRange = True
-                        rangeZValues.append(z)
-                        
-                    elif inList[z][3] <= input[4] and inExceedingRange:
-                        inExceedingRange = False
-                        rangeZValues.append(z)
-                        
-                if inExceedingRange:
-                    rangeZValues.append(length)
-                
-                while exceedingY:
-                    
-                    for index in range(0,len(rangeZValues),2):
-                        
-                        for z in range(rangeZValues[index],rangeZValues[index + 1]):
-                            
-                            inList[z][3] -= yMaxOffset
-                            
-                            
-                    exceedingY = False
-                    inExceedingRange = False
-                    rangeZValues = []
-                    
-                    for z in range(length):
-
-                        if inList[z][3] > input[4] and not inExceedingRange:
-        
-                            exceedingY = True
-                            inExceedingRange = True
-                            rangeZValues.append(z)
-                            
-                        elif inList[z][3] <= input[4] and inExceedingRange:
-                            inExceedingRange = False
-                            rangeZValues.append(z)
-                            
-                    if inExceedingRange:
-                        rangeZValues.append(length)
-                        
-                outQueue.put((inList,input[2]))
-                inQueue.task_done()
-                
-            else:
-                inQueue.task_done()
-    
-    
-    
-    
+    positionMatrix = []
     startY = int((maximumY - minimumY) / 2) + minimumY
     
     workMatrix = copy.deepcopy(mapIDMatrix)
@@ -281,49 +157,53 @@ def mapIDToPositionMatrix(mapIDMatrix, minimumY = 6,maximumY = 250):
     length = len(workMatrix[0])
     
     positionMatrix = [[0 for i in range(length)] for i in range(width)]
-    
-    
-    inQueue = mupro.JoinableQueue()
-    outQueue = queue.Queue()
-    processList = []
-    
-    for pNum in range(_maxThreads):
-        process = mupro.Process(target = _positionWorker)
-        process.start()
-        processList.append(process)
-        
-        
-    #First pass over the matrix fills it with the position values
-    
+
     for x in range(width):
         
-        inQueue.put((0, workMatrix[x], x, startY))
-    
-    inQueue.join()
-    
         
-    while not outQueue.empty():
-        
-        output = outQueue.get()
-        positionMatrix[output[1]] = output[0]
+        for z in range(length):
+            
+            if z == 0:
+                positionMatrix[x][z] = [45,x,length - 1,startY]
+            
+            else:
+                if int(workMatrix[x][z]) % 4 == 1:
+                    posY = positionMatrix[x][z-1][3]    
+                                  
+                elif int(workMatrix[x][z]) % 4 == 2:
+                    
+                    posY = positionMatrix[x][z-1][3] + 1
                 
+                else:
+                    if positionMatrix[x][z-1][3] <= minimumY:
+                        for position in positionMatrix[x][:z]:
+                            position[3] += 1
+                    
+                    posY = positionMatrix[x][z-1][3] - 1
+                
+                
+                positionMatrix[x][z] = [workMatrix[x][z],x, length - (z + 1), posY]
+
+
     #Second pass over the matrix to fix to high Y coordinates
     
     #First Step: Normalisation of each North-South column which are independend from each other,
     #contrary to the West-East rows. At the end, each column has at least one block on
     #the minimal Y coordiante.
     for x in range(width):
+        lowestY = maximumY
         
-        inQueue.put((1, positionMatrix[x], x, minimumY, maximumY))
-    
-    inQueue.join()
-    
-        
-    while not outQueue.empty():
-        
-        output = outQueue.get()
-        positionMatrix[output[1]] = output[0]
-        
+        for z in range(length):
+            
+            lowestY = min(lowestY,positionMatrix[x][z][3])
+            
+        if lowestY > minimumY:
+            
+            yOffset = lowestY - minimumY
+            
+            for z in range(length):
+                    
+                positionMatrix[x][z][3] -= yOffset
         
     #Second Step: finding all ranges of blocks in each line that are too high and force them to be lower
     #than the maximum Y coordiante. This can lead to missmatched pixels inside the picture.
@@ -331,21 +211,51 @@ def mapIDToPositionMatrix(mapIDMatrix, minimumY = 6,maximumY = 250):
     yMaxOffset = maximumY - minimumY + 1
     
     for x in range(width):
+        exceedingY = False
+        inExceedingRange = False
+        rangeZValues = []
         
-        inQueue.put((2, positionMatrix[x], x, minimumY, maximumY))
-    
-    inQueue.join()
-    
-    while not outQueue.empty():
-        
-        output = outQueue.get()
-        positionMatrix[output[1]] = output[0]
+        for z in range(length):
+            
+            if positionMatrix[x][z][3] > maximumY and not inExceedingRange:
+                exceedingY = True
+                inExceedingRange = True
+                rangeZValues.append(z)
                 
-    
-    for process in processList:
-        inQueue.put(None)
-    for process in processList:
-        process.join()
+            elif positionMatrix[x][z][3] <= maximumY and inExceedingRange:
+                inExceedingRange = False
+                rangeZValues.append(z)
+                
+        if inExceedingRange:
+            rangeZValues.append(length)
+        
+        while exceedingY:
+            
+            for index in range(0,len(rangeZValues),2):
+                
+                for z in range(rangeZValues[index],rangeZValues[index + 1]):
+                    
+                    positionMatrix[x][z][3] -= yMaxOffset
+                    
+                    
+            exceedingY = False
+            inExceedingRange = False
+            rangeZValues = []
+            
+            for z in range(length):
+                
+                if positionMatrix[x][z][3] > maximumY and not inExceedingRange:
+
+                    exceedingY = True
+                    inExceedingRange = True
+                    rangeZValues.append(z)
+                    
+                elif positionMatrix[x][z][3] <= maximumY and inExceedingRange:
+                    inExceedingRange = False
+                    rangeZValues.append(z)
+                    
+            if inExceedingRange:
+                rangeZValues.append(length)
     
     return positionMatrix
 
@@ -383,88 +293,20 @@ def mapIDToPicture(mapIDMatrix, mapIDDic):
 
     return tag_compound_list
 
+
+
+
 def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSize):
     
-    class Prio():
-        prio: int = -1
-        
-        def add_get(self):
-            
-            self.prio += 1
-            
-            return self.prio
-    
-    def _schematicThreadWorker():
-        
-        while True:
-            threadData = threading.local()
-            threadData.input = inQueue.get()
-            
-            if threadData.input == None:
-                inQueue.task_done()
-                break
-            
-            elif threadData.input[0] == 0:
-                #Input looks like (flag, prio, rangeY, tulpeRangeZ, tulpeRangeX, tulpeSchematicPosition)
-
-                
-            
-                threadData.blockList = []
-                threadData.blockDataList = []
-                
-        
-                for threadData.yThread in range(threadData.input[2]):
-                    
-                    for threadData.zThread in range(threadData.input[3][0],threadData.input[3][1]):
-                        
-                        for threadData.xThread in range(threadData.input[4][0],threadData.input[4][1]):
-                            
-                            schemLock.acquire()
-                            
-                            threadData.blockID = schematicCubix[threadData.yThread][threadData.zThread][threadData.xThread]
-                            
-                            schemLock.release()
-                            
-                            if "_" in threadData.blockID:
-                                threadData.blockID = threadData.blockID.split("_")
-                                threadData.blockList.append(int(threadData.blockID[0]))
-                                threadData.blockDataList.append(int(threadData.blockID[1]))
-                                
-                            else:
-                                threadData.blockList.append(int(threadData.blockID))
-                                threadData.blockDataList.append(0)
-                
-                
-                #--------Building Tag_Compound-----------
-                
-                threadData.tagList = [
-                    nbt.Tag_Short(name = "Height", shortInt = threadData.input[2]),
-                    nbt.Tag_Short(name = "Length", shortInt = threadData.input[3][1] - threadData.input[3][0]),
-                    nbt.Tag_Short(name = "Width", shortInt = threadData.input[4][1] - threadData.input[4][0]),
-                    nbt.Tag_String(name = "Materials", string = "Alpha"),
-                    nbt.Tag_List(name = "Entities"),
-                    nbt.Tag_List(name = "TileEntities"),
-                    nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = threadData.blockList),
-                    nbt.Tag_Byte_Array(name = "Data", arrayOfInts = threadData.blockDataList)
-                ]
-                
-                threadData.tagCompoundName = str(threadData.input[5][0]) + " " + str(threadData.input[5][1])
-                
-                outPrioQueue.put((threadData.input[1], nbt.Tag_Compound(name = threadData.tagCompoundName, listOfTags = threadData.tagList)))
-                
-                inQueue.task_done()
-            
-   
-   
     maxSchematicHeight = maxY - minY
     highestUsedY = minY
     length = len(positionMatrix[0])
     width = len(positionMatrix)
     
     
-    #In the schematicCubix, x and z positions are switched, because the way schematics are build
+    
     schematicCubix = [ [["0" for i in range(width)] for i in range(length)] for i in range(maxSchematicHeight + 1)]
-
+    
     
     for x in range(width):
         
@@ -472,7 +314,7 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSi
             position = positionMatrix[x][z]
             
             correctedY = position[3] - minY
-
+            
             schematicCubix[correctedY][z][x] = mapIDDic[position[0]][2]
 
             highestUsedY = max(correctedY, highestUsedY)
@@ -502,48 +344,49 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSi
         widthRanges.append(i * maxSize)
     if widthRanges[-1] < schematicWidth:
         widthRanges.append(schematicWidth)
-    
     tag_compound_list = []
-    priority = Prio()
-    
-    inQueue = queue.Queue()
-    outPrioQueue = queue.PriorityQueue()
-    threadList = []
-    schemLock = threading.Lock()
-    
-    for tNum in range(_maxThreads):
-        thread = threading.Thread(target = _schematicThreadWorker)
-        thread.start()
-        threadList.append(thread)
-    
     
     for rangeZ in range(1,len(lengthRanges)):
         
         for rangeX in range(1,len(widthRanges)):
-            lengthRange = (lengthRanges[rangeZ-1] , lengthRanges[rangeZ])
-            widthRange = (widthRanges[rangeX-1] , widthRanges[rangeX])
-            schematicPosition = (rangeZ - 1, rangeX - 1)
-            inQueue.put((0, priority.add_get(), schematicHeight, lengthRange, widthRange, schematicPosition))
+            
+            blockList = []
+            blockDataList = []
+    
+            for y in range(schematicHeight):
+                
+                for z in range(lengthRanges[rangeZ - 1],lengthRanges[rangeZ]):
+                    
+                    for x in range(widthRanges[rangeX - 1],widthRanges[rangeX]):
+                        
+                        blockID = schematicCubix[y][z][x]
+                        
+                        if "_" in blockID:
+                            blockID = blockID.split("_")
+                            blockList.append(int(blockID[0]))
+                            blockDataList.append(int(blockID[1]))
+                            
+                        else:
+                            blockList.append(int(blockID))
+                            blockDataList.append(0)
+            
+            
+            #--------Building Tag_Compound-----------
+            
+            tagList = [
+                nbt.Tag_Short(name = "Height", shortInt = schematicHeight),
+                nbt.Tag_Short(name = "Length", shortInt = lengthRanges[rangeZ] - lengthRanges[rangeZ - 1]),
+                nbt.Tag_Short(name = "Width", shortInt = widthRanges[rangeX] - widthRanges[rangeX - 1]),
+                nbt.Tag_String(name = "Materials", string = "Alpha"),
+                nbt.Tag_List(name = "Entities"),
+                nbt.Tag_List(name = "TileEntities"),
+                nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = blockList),
+                nbt.Tag_Byte_Array(name = "Data", arrayOfInts = blockDataList),
+            ]
+            
+            tag_compound_list.append(nbt.Tag_Compound(name = str(rangeZ - 1) + " " + str(rangeX - 1), listOfTags = tagList))
     
     
-    inQueue.join()
-    
-    for thread in threadList:
-        inQueue.put(None)
-    for thread in threadList:
-        thread.join()
-    
-    while not outPrioQueue.empty():
-        
-        output = outPrioQueue.get()
-
-        tag_compound_list.append(output[1])
-
-        outPrioQueue.task_done()
-    
-    tc = tag_compound_list[0]
-    
-
     return tag_compound_list
     
     

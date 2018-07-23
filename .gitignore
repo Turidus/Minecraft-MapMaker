@@ -11,3 +11,4 @@ Parsers2.py
 *.spec
 *.exe
 *.zip
+ParsersMultiProcess.py
