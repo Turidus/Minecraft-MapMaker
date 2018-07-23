@@ -1,11 +1,15 @@
 from math import sqrt
 from PIL import Image
+import os
 import io
 import sys
 import copy
 import random as rnd
+
 import nbt
 
+
+_maxProc = max(1, os.cpu_count() -1)
 
 def _rgbDistance(rgbFromPixel,rgbFromList):
     
@@ -14,16 +18,8 @@ def _rgbDistance(rgbFromPixel,rgbFromList):
     bDif = rgbFromPixel[2] - rgbFromList[2]
     
     return sqrt( rDif ** 2 + gDif ** 2 + bDif ** 2)
-    
-def _blockFinder(mapID,mapIdList):
-    
-    for entry in mapIdList:
-        if entry[0] == mapID:
-            return entry[2:]
-    
 
-    raise IOError
-            
+
 def _openImage(pathString):
     
     try:
@@ -35,10 +31,6 @@ def _openImage(pathString):
     
     return img
     
-def _addOneToAllY(positionMatrix):
-    for z in range(len(positionMatrix)):
-        for x in range(len(positionMatrix[z])):
-            positionMatrix[z][x][3] += 1
             
 def _sortkeyForUsedBlocks(string):
     
@@ -47,13 +39,16 @@ def _sortkeyForUsedBlocks(string):
     else:
         splitString = string.split("_")
         return (int(splitString[0]),int(splitString[1]))
+        
+        
+    
     
 def imageFileToRGBMatrix(pathString):
     
     img = _openImage(pathString)
 
     if img.size[0] == 0 or img.size[1] == 0:
-        raise IOError("Inpit image was empty")
+        raise IOError("Input image was empty")
         
     if img.mode != "RGB":
         
@@ -74,42 +69,40 @@ def imageFileToRGBMatrix(pathString):
         
     return rgbMatrix
     
-def rgbMatrixToMapID(rgbMatrix, mapIdList):
+def rgbMatrixToMapID(rgbMatrix, mapIDDic):
     
-    mapIdMatrix = []
-    curRGB = (-1,-1,-1)
-    curMapID = "0"
+    length = len(rgbMatrix[0])
+    width = len(rgbMatrix)
+    
+    mapIdMatrix = [[0 for i in range(length)] for i in range(width)]
+    
+    knownResults = {}
 
-    for x in range(len(rgbMatrix)):
+    for x in range(width):
         
-        tempLine = []
-        
-        for z in range(len(rgbMatrix[x])):
+        for z in range(length):
             
-            if curRGB == rgbMatrix[x][z]:       #Pictures often have groups of pixels with the same value
-                tempLine.append(curMapID)       #This saves a loop through the MapIdList in that case
+            if rgbMatrix[x][z] in knownResults:
+                mapIdMatrix[x][z] = knownResults[rgbMatrix[x][z]]
                 continue
-            else:
-                curRGB = rgbMatrix[x][z]
             
             curDif = 450
             
-            for entry in mapIdList:
+            for entry in mapIDDic:
                 
-                tempDif = _rgbDistance(rgbMatrix[x][z],entry[1])
+                tempDif = _rgbDistance(rgbMatrix[x][z],mapIDDic[entry][0])
 
                 if tempDif < curDif:
                     
                     curDif = tempDif
-                    curMapID = entry[0]
-                
-            tempLine.append(curMapID)
-        
-        mapIdMatrix.append(tempLine)
+                    curMapID = entry
+            
+            knownResults[rgbMatrix[x][z]] = curMapID
+            mapIdMatrix[x][z] = curMapID
 
     return mapIdMatrix
 
-def mapIDToAmountString(mapIDMatrix,mapIdList):
+def mapIDToAmountString(mapIDMatrix,mapIDDic):
     
     usedBlocks = {}
     
@@ -119,14 +112,14 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
         
         for z in range(len(mapIDMatrix[x])):
             
-            block = _blockFinder(mapIDMatrix[x][z],mapIdList)
+            block = mapIDDic[mapIDMatrix[x][z]]
             
-            if block[1] not in usedBlocks:
+            if block[2] not in usedBlocks:
                 
-                usedBlocks[block[1]] = [1,block[0]]
+                usedBlocks[block[2]] = [1,block[1]]
             
             else:
-                usedBlocks[block[1]][0] += 1
+                usedBlocks[block[2]][0] += 1
     
     retString = "You need follwing amount of blocks\n"
     retString += "{:^40}{:^10}{:^10}\n".format("Blockname","BlockID","Amount")
@@ -146,7 +139,9 @@ def mapIDToAmountString(mapIDMatrix,mapIdList):
     
     return retString
     
-def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
+
+    
+def mapIDToPositionMatrix(mapIDMatrix, minimumY = 6,maximumY = 250):
     
     positionMatrix = []
     startY = int((maximumY - minimumY) / 2) + minimumY
@@ -161,36 +156,33 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     width = len(workMatrix) 
     length = len(workMatrix[0])
     
+    positionMatrix = [[0 for i in range(length)] for i in range(width)]
 
     for x in range(width):
         
-        tempLine = []
         
         for z in range(length):
             
             if z == 0:
-                tempLine.append([45,x,length - 1,startY])
+                positionMatrix[x][z] = [45,x,length - 1,startY]
             
             else:
                 if int(workMatrix[x][z]) % 4 == 1:
-                    posY = tempLine[-1][3]    
+                    posY = positionMatrix[x][z-1][3]    
                                   
                 elif int(workMatrix[x][z]) % 4 == 2:
                     
-                    posY = tempLine[-1][3] + 1
+                    posY = positionMatrix[x][z-1][3] + 1
                 
                 else:
-                    if tempLine[-1][3] <= minimumY:
-                        for position in tempLine:
+                    if positionMatrix[x][z-1][3] <= minimumY:
+                        for position in positionMatrix[x][:z]:
                             position[3] += 1
                     
-                    posY = tempLine[-1][3] - 1
+                    posY = positionMatrix[x][z-1][3] - 1
                 
                 
-                tempLine.append([workMatrix[x][z],x, length - (z + 1), posY])
-                
-                
-        positionMatrix.append(tempLine)
+                positionMatrix[x][z] = [workMatrix[x][z],x, length - (z + 1), posY]
 
 
     #Second pass over the matrix to fix to high Y coordinates
@@ -270,28 +262,23 @@ def mapIDToPositionMatrix(mapIDMatrix,mapIDList,minimumY = 6,maximumY = 250):
     
 
     
-def positionMatrixToPositionString(positionMatrix,mapIDList):
+def positionMatrixToPositionString(positionMatrix,mapIDDic):
     
-    curMapID = 45
-    curBlock = "Cobbelstone"
     retString = "{:^40}({:^5},{:^5},{:^5})\n".format("Block","X","Z","Y")
     
     for x in range(len(positionMatrix)):
+        
         for z in range(len(positionMatrix[0])):
-            if positionMatrix[x][z][0] != curMapID:
-                curMapID = positionMatrix[x][z][0]
-                curBlock = _blockFinder(curMapID,mapIDList)[0]
-                
-            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(curBlock,positionMatrix[x][z][1], positionMatrix[x][z][2],positionMatrix[x][z][3])
+            
+            position = positionMatrix[x][z]
+            retString += "{:^40}({:^5},{:^5},{:^5})\n".format(mapIDDic[position[0]][1],position[1], position[2],position[3])
     
     return retString
 
 
 
-def mapIDToPicture(mapIDMatrix, mapIDList):
+def mapIDToPicture(mapIDMatrix, mapIDDic):
     
-    curMapID = 0
-    curRGB = (0,0,0)
 
     image = Image.new("RGB", (len(mapIDMatrix),len(mapIDMatrix[0])))
     
@@ -299,29 +286,22 @@ def mapIDToPicture(mapIDMatrix, mapIDList):
         
         for z in range(len(mapIDMatrix[0])):
             
-            if curMapID != mapIDMatrix[x][z]:
-                
-                for item in mapIDList:
-                    
-                    if item[0] == mapIDMatrix[x][z]:
-                        
-                        curRGB = item[1]
-                        break
-            
-            image.putpixel((x,z),curRGB)
+            image.putpixel((x,z), mapIDDic[mapIDMatrix[x][z]][0])
             
     return image
     
 
+    return tag_compound_list
 
-def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxSize):
+
+
+
+def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSize):
     
     maxSchematicHeight = maxY - minY
     highestUsedY = minY
     length = len(positionMatrix[0])
     width = len(positionMatrix)
-    curMapID = 0
-    curBlockID = 0
     
     
     
@@ -331,14 +311,12 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxS
     for x in range(width):
         
         for z in range(length):
+            position = positionMatrix[x][z]
             
-            if positionMatrix[x][z][0] != curMapID:
-                curMapID = positionMatrix[x][z][0]
-                curBlockID = _blockFinder(curMapID,mapIDList)[1]
+            correctedY = position[3] - minY
+            
+            schematicCubix[correctedY][z][x] = mapIDDic[position[0]][2]
 
-
-            correctedY = positionMatrix[x][z][3] - minY
-            schematicCubix[correctedY][z][x] = curBlockID
             highestUsedY = max(correctedY, highestUsedY)
             
     if highestUsedY < maxSchematicHeight:
@@ -395,17 +373,20 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDList, minY, maxY, maxS
             
             #--------Building Tag_Compound-----------
             
-            tagHeight = nbt.Tag_Short(name = "Height", shortInt = schematicHeight)
-            tagLength = nbt.Tag_Short(name = "Length", shortInt = lengthRanges[rangeZ] - lengthRanges[rangeZ - 1])
-            tagWidth = nbt.Tag_Short(name = "Width", shortInt = widthRanges[rangeX] - widthRanges[rangeX - 1])
-            tagMaterials = nbt.Tag_String(name = "Materials", string = "Alpha")
-            tagEntities = nbt.Tag_List(name = "Entities")
-            tagTileEntities = nbt.Tag_List(name = "TileEntities")
-            tagBlocks = nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = blockList)
-            tagData = nbt.Tag_Byte_Array(name = "Data", arrayOfInts = blockDataList)
-            tagList = [tagHeight,tagLength,tagWidth,tagMaterials,tagEntities,tagTileEntities,tagBlocks,tagData]
+            tagList = [
+                nbt.Tag_Short(name = "Height", shortInt = schematicHeight),
+                nbt.Tag_Short(name = "Length", shortInt = lengthRanges[rangeZ] - lengthRanges[rangeZ - 1]),
+                nbt.Tag_Short(name = "Width", shortInt = widthRanges[rangeX] - widthRanges[rangeX - 1]),
+                nbt.Tag_String(name = "Materials", string = "Alpha"),
+                nbt.Tag_List(name = "Entities"),
+                nbt.Tag_List(name = "TileEntities"),
+                nbt.Tag_Byte_Array(name = "Blocks", arrayOfInts = blockList),
+                nbt.Tag_Byte_Array(name = "Data", arrayOfInts = blockDataList),
+            ]
             
             tag_compound_list.append(nbt.Tag_Compound(name = str(rangeZ - 1) + " " + str(rangeX - 1), listOfTags = tagList))
+    
+    
     return tag_compound_list
     
     

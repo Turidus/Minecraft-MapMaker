@@ -4,9 +4,9 @@ import nbt
 import gzip
 
 
-def saveAmountTxT(mapIDMatrix, mapIDList, name):
+def saveAmountTxT(mapIDMatrix, mapIDDic, name):
     
-    stringToSave = Parsers.mapIDToAmountString(mapIDMatrix, mapIDList)
+    stringToSave = Parsers.mapIDToAmountString(mapIDMatrix, mapIDDic)
     
     if not os.path.isdir("./save/" + name + "/"):
         
@@ -17,9 +17,9 @@ def saveAmountTxT(mapIDMatrix, mapIDList, name):
     with open("./save/" + name + "/" + name +"_amount.txt", "w") as saveFile:
         saveFile.write(stringToSave)
         
-def saveBlockPositionTxT(positionMatrix,mapIDList, name):
+def saveBlockPositionTxT(positionMatrix,mapIDDic, name):
     
-    stringToSave = Parsers.positionMatrixToPositionString(positionMatrix,mapIDList)
+    stringToSave = Parsers.positionMatrixToPositionString(positionMatrix,mapIDDic)
     
     if not os.path.isdir("./save/" + name):
         
@@ -30,9 +30,9 @@ def saveBlockPositionTxT(positionMatrix,mapIDList, name):
     with open("./save/" + name + "/" + name +"_BlockPositions.txt", "w") as saveFile:
         saveFile.write(stringToSave)
         
-def saveImage(mapIDMatrix, mapIDList, name):
+def saveImage(mapIDMatrix, mapIDDic, name):
     
-    imageToSave = Parsers.mapIDToPicture(mapIDMatrix, mapIDList)
+    imageToSave = Parsers.mapIDToPicture(mapIDMatrix, mapIDDic)
     
     if not os.path.isdir("./save/" + name):
         
