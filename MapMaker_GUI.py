@@ -2,6 +2,8 @@ from appJar import gui
 import MapMaker
 import re
 import os
+import queue
+import time
 
 
 class Args():
@@ -20,13 +22,13 @@ class Args():
     
 arguments = Args()
 
-def _dispatchMapMaker(args):
+def _dispatchMapMaker(args, outPrioQueue):
     
     errorHappend = False
     errorString = ""
     
     try:
-        MapMaker.MapMaker(arguments)
+        MapMaker.MapMaker(args, outPrioQueue)
         
     except IOError as ioErr:
         errorHappend = True
@@ -44,6 +46,38 @@ def _dispatchMapMaker(args):
             app.queueFunction(app.setMessage,"output", "Status: Done\n\nStatus: Waiting\n")
             
         app.queueFunction(app.enableButton,"Go")
+        
+def _collectOutput(outPrioQueue):
+        
+    #oldMessage = app.queueFunction(app.getMessage,"output") #---- Does not work
+
+    oldMessage = app.getMessage("output")   #Not thread safe
+    out = (0,"Waiting")
+    waitString = ""
+    
+    while True:
+        
+        
+        if outPrioQueue.empty():
+            if len(waitString) > 5:
+                waitString = " ."
+            else:
+                waitString += " ."
+                
+            app.queueFunction(app.setMessage,"output", oldMessage + "\nStatus: " + out[1] + waitString + "\n")
+        
+            time.sleep(0.5)
+        
+        else:
+            out = outPrioQueue.get()
+
+            app.queueFunction(app.setMessage,"output", oldMessage + "\nStatus: " + out[1] + "\n")
+            
+            outPrioQueue.task_done()
+        if out[1] == "Finished with this image":
+            break
+            
+        
     
     
 
@@ -136,11 +170,12 @@ def press(name):
     
     app.setMessage("output", "Status: Running. This can take awhile\n")
     
-    try:
-        app.thread(_dispatchMapMaker,arguments)
-    except AttributeError as atErr:
-        app.setMessage("output","Error: " + str(atErr) + "\nStatus: Waiting\n")
-        print(str(atErr))
+    outQueue = queue.PriorityQueue()    
+    app.thread(_dispatchMapMaker,arguments, outQueue)
+    app.thread(_collectOutput, outQueue)
+    
+
+
     
 
 
