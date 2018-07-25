@@ -6,6 +6,7 @@ def mult220(x):
 
 def mapIDGenerator3D(blackList = []):
     
+
     with open("BaseColorIds.txt","r") as baseIDFile:
         baseIDList = baseIDFile.read().splitlines()
     

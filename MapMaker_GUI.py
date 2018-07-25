@@ -9,7 +9,7 @@ import time
 class Args():
     
     pathToImage = None
-    bl = None
+    bl = []
     name = None
     twoD = False
     p = True
@@ -41,9 +41,10 @@ def _dispatchMapMaker(args, outPrioQueue):
     finally:
         if errorHappend:
             print(errorString)
-            app.queueFunction(app.setMessage, "output", errorString + "\nStatus: Waiting\n")
+            outPrioQueue.put( (-2, "Error: " + errorString + "\nStatus: Waiting\n") )
         else:
-            app.queueFunction(app.setMessage,"output", "Status: Done\n\nStatus: Waiting\n")
+            outPrioQueue.put( (-1, "Status: Done\n\nStatus: Waiting\n") )
+            
             
         app.queueFunction(app.enableButton,"Go")
         
@@ -71,15 +72,16 @@ def _collectOutput(outPrioQueue):
         else:
             out = outPrioQueue.get()
 
-            app.queueFunction(app.setMessage,"output", oldMessage + "\nStatus: " + out[1] + "\n")
+            if out[0] < 0:
+                app.queueFunction(app.setMessage,"output", out[1] + "\n")
+                outPrioQueue.task_done()
+                break
+                
+            else:
+                app.queueFunction(app.setMessage,"output", oldMessage + "\nStatus: " + out[1] + "\n")
+                outPrioQueue.task_done()
             
-            outPrioQueue.task_done()
-        if out[1] == "Finished with this image":
-            break
-            
-        
-    
-    
+       
 
 def press(name):
     
@@ -100,18 +102,14 @@ def press(name):
         errorHappend = True
         errorString += "Error: File not found\n"
         
-    
-    arguments.bl = entries["bl"]
-    if arguments.bl == "For example: 33, 14, 5" or arguments.bl == "":
-        arguments.bl = None
-    
-    elif "a" in re.sub(r'[^0-9,\s]','a',arguments.bl):
-        errorHappend = True
-        errorString +="Error: Invalid blacklist\n"
+
+    for item in boxes:
         
-    else:
-        arguments.bl = arguments.bl.replace(" ", "")
-        arguments.bl = arguments.bl.split(",")
+        if not boxes[item] and len(item) > 3 and item[:3] == "ID:":
+            print(item)
+            colorID = item.split()[1]
+            arguments.bl.append(colorID)
+    print(arguments.bl)
     
     arguments.n = entries["n"]
     if arguments.n == "":
@@ -173,13 +171,20 @@ def press(name):
     outQueue = queue.PriorityQueue()    
     app.thread(_dispatchMapMaker,arguments, outQueue)
     app.thread(_collectOutput, outQueue)
+
+
+def colorListOpen():
+    app.showSubWindow("CB")
     
+def colorListClose():
+    app.hideSubWindow("CB")
 
 
     
 
 
 #---Building the GUI----
+#---Main Window----
 app = gui("Minecraft Map Maker")
 app.setSize("1000x600")
 
@@ -188,25 +193,23 @@ app.setSticky("w")
 app.addLabel("pathToImage","Path to image",row = 1, column = 0)
 app.setLabelAlign("pathToImage","e")
 
-app.addLabel("bl","Base color IDs that\nshould not be used",row = 2, column = 0)
+app.addLabel("n","Name",row = 2, column = 0)
+app.setLabelAlign("n","e")
+
+app.addLabel("bl","Colors/Blocks used",row = 3, column = 0)
 app.setLabelAlign("bl","e")
 
-app.addLabel("n","Name",row = 3, column = 0)
-app.setLabelAlign("n","e")
 
 #---Column 1
 app.setSticky("w")
 
 app.addFileEntry("pathToImage",row = 1, column = 1)
-#app.setEntry("pathToImage", "Path to the image")
 app.setEntryTooltip("pathToImage", "The path to your image")
 
-app.addEntry("bl", row = 2, column = 1)
-app.setEntryTooltip("bl", "For example: 33, 14, 5\nSee Readme for more infos")
-#app.setEntry("bl", "For example: 33, 14, 5")
-
-app.addEntry("n", row = 3, column = 1)
+app.addEntry("n", row = 2, column = 1)
 app.setEntryTooltip("n", "optional")
+
+app.addButton("Colors", colorListOpen, row = 3, column = 1)
 
 
 #---Column 2
@@ -295,4 +298,37 @@ app.addButton("Exit", press, row = 7, column = 5)
 
 
 
-app.go()
+#------------Subwindow--------------
+app.startSubWindow("CB", modal = True)
+
+try:
+    with open("BaseColorIds.txt","r") as baseIDFile:
+        baseIDList = baseIDFile.read().splitlines()
+        baseIDList.pop(0)
+except IOError:
+    app.setMessage("output", "Error: No BaseColorID file found. Please exit and check your installation")
+
+app.setSticky("w")
+app.setPadding(2,2)
+for index in range(len(baseIDList)):
+    lineSplit = baseIDList[index].split("\t")
+    boxName = "ID:{:>3} {:<30}".format(lineSplit[0],lineSplit[2])
+    boxColor = lineSplit[1].split(", ")
+    boxColorHex = "#%0.2x%0.2x%0.2x" % (int(boxColor[0]),int(boxColor[1]),int(boxColor[2]))
+    
+    colPic = int(index / 10) * 2
+    col = colPic + 1
+    row = index % 10
+    app.addLabel(boxName, text = "", row = row, column = colPic)
+    app.setLabelBg(boxName, boxColorHex)
+    app.addCheckBox(boxName, row = row, column = col)
+    app.setCheckBox(boxName)
+    
+    #app.setButtonBg(boxName, boxColorHex)
+
+app.addButton("Back", colorListClose, row = 11)
+app.stopSubWindow()
+
+
+if __name__ == "__main__":
+    app.go()
