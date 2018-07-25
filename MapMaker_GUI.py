@@ -316,17 +316,19 @@ for index in range(len(baseIDList)):
     boxColor = lineSplit[1].split(", ")
     boxColorHex = "#%0.2x%0.2x%0.2x" % (int(boxColor[0]),int(boxColor[1]),int(boxColor[2]))
     
-    colPic = int(index / 10) * 2
+    colPic = int(index / 15) * 2
     col = colPic + 1
-    row = index % 10
+    row = index % 15
     app.addLabel(boxName, text = "", row = row, column = colPic)
     app.setLabelBg(boxName, boxColorHex)
+    app.setLabelRelief(boxName, "solid")
+    app.setLabelWidth(boxName, 5)
     app.addCheckBox(boxName, row = row, column = col)
     app.setCheckBox(boxName)
     
     #app.setButtonBg(boxName, boxColorHex)
 
-app.addButton("Back", colorListClose, row = 11)
+app.addButton("Back", colorListClose, row = 16)
 app.stopSubWindow()
 
 
