@@ -180,6 +180,7 @@ def colorListClose():
     app.hideSubWindow("CB")
 
 
+
     
 
 
@@ -209,7 +210,7 @@ app.setEntryTooltip("pathToImage", "The path to your image")
 app.addEntry("n", row = 2, column = 1)
 app.setEntryTooltip("n", "optional")
 
-app.addButton("Colors", colorListOpen, row = 3, column = 1)
+app.addButton("Colors/Blocks", colorListOpen, row = 3, column = 1)
 
 
 #---Column 2
@@ -222,7 +223,7 @@ app.addVerticalSeparator(row = 0, column = 2, rowspan = 6)
 
 #---Column 3
 app.setSticky("w")
-app.addLabel("switches","Switches", row = 0, column = 3)
+app.addLabel("generate","Generate:", row = 0, column = 3)
 app.addCheckBox("2D", row = 1, column = 3)
 app.setCheckBoxTooltip("2D", "Generate a 2D instead of a stepped construced. Only 53 colors.")
 
@@ -251,7 +252,7 @@ app.setPadding(0)
 
 #---Column 5
 app.setSticky("w")
-app.addLabel("ints","Dimensions", row = 0, column = 5)
+app.addLabel("ints","Dimensions:", row = 0, column = 5)
 app.addLabel("minY","Minimal Y coordiante",row = 1, column = 5)
 app.setLabelAlign("minY","e")
 app.addLabel("maxY","Maximum Y coordiante",row = 2, column = 5)
@@ -310,15 +311,17 @@ except IOError:
 
 app.setSticky("w")
 app.setPadding(2,2)
+columnLength = 15
+
 for index in range(len(baseIDList)):
     lineSplit = baseIDList[index].split("\t")
-    boxName = "ID:{:>3} {:<30}".format(lineSplit[0],lineSplit[2])
+    boxName = "ID: {:<3}{:<30}".format(lineSplit[0],lineSplit[2])
     boxColor = lineSplit[1].split(", ")
     boxColorHex = "#%0.2x%0.2x%0.2x" % (int(boxColor[0]),int(boxColor[1]),int(boxColor[2]))
     
-    colPic = int(index / 15) * 2
+    colPic = int(index / columnLength) * 2
     col = colPic + 1
-    row = index % 15
+    row = index % columnLength
     app.addLabel(boxName, text = "", row = row, column = colPic)
     app.setLabelBg(boxName, boxColorHex)
     app.setLabelRelief(boxName, "solid")
@@ -326,9 +329,9 @@ for index in range(len(baseIDList)):
     app.addCheckBox(boxName, row = row, column = col)
     app.setCheckBox(boxName)
     
-    #app.setButtonBg(boxName, boxColorHex)
 
-app.addButton("Back", colorListClose, row = 16)
+app.addButton("Back", colorListClose, row = columnLength + 1)
+app.addWebLink("Colors and their assoicated blocks (Minecraft Wiki)", "https://minecraft.gamepedia.com/Map_item_format", column = 1, row = columnLength + 1)
 app.stopSubWindow()
 
 
