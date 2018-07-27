@@ -22,6 +22,7 @@ class Args():
     minY = 4
     maxY = 250
     maxS = 129
+    v = False
     
 arguments = Args()
 
@@ -182,7 +183,7 @@ def colorListClose():
     
 def updateCheck():
     
-    version = app.getLabel("version").split(" ")[1][1:]
+    version = app.getLabel("version").split(" ")[1].strip()
     
     try:
         with urlopen("https://api.github.com/repos/Turidus/Minecraft-MapMaker/releases/latest") as response:
@@ -194,7 +195,7 @@ def updateCheck():
         app.errorBox("Error", "Could not open URL")
         
     jsonDic = json.loads(jsondata)
-    lastRelease = jsonDic["tag_name"]
+    lastRelease = jsonDic["tag_name"].strip()
     
     if version == lastRelease:
         app.infoBox("No update", "This Version is up to date")
@@ -209,13 +210,10 @@ def aboutMenu(name):
 
 
 
-
-    
-
-
 #---Building the GUI----
 #---Main Window----
-app = gui("Minecraft Map Maker")
+app = gui("Minecraft Map Maker", showIcon = False)
+app.setIcon("icon.gif")
 app.setSize("1000x600")
 app.addMenuList("About",["About"],aboutMenu)
 
@@ -370,8 +368,8 @@ app.addWebLink("Readme", "https://github.com/Turidus/Minecraft-MapMaker/blob/mas
 app.addWebLink("Sourcecode", "https://github.com/Turidus/Minecraft-MapMaker")
 app.addWebLink("Latest Release", "https://github.com/Turidus/Minecraft-MapMaker/releases/latest")
 
-with open("README.md") as readme:
-    app.addLabel("version", text = readme.readline())
+with open("version") as vFile:
+    app.addLabel("version", text = vFile.readline())
     
 app.addButton("Check for Update", updateCheck)
 
