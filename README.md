@@ -42,7 +42,7 @@ You can still configure all the arguments inside the GUI
 
 ### From MapMaker_GUI.exe
 **only tested for Windows 10 64bit**  
-You can also download the zip file MinecraftMapMaker_exe.zip(https://github.com/Turidus/Minecraft-MapMaker/releases/latest). After
+You can also download the zip file ]MinecraftMapMaker_exe.zip](https://github.com/Turidus/Minecraft-MapMaker/releases/latest). After
 unpacking this file into a folder of your choice, you can simply start by using the MapMaker_GUI.exe.
 No Python or other dependencies requiered.
 
