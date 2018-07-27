@@ -45,6 +45,8 @@ unpacking this file into a folder of your choice, you can simply start by using 
 No Python or other dependencies requiered.
 
 ### Optional Arguments:
++ *-v*  
+  Shows version
 
 + *-bl* BaseColorID BaseColorID ...  
   This option lets you block colors, and with that the blocks that make up that colors, that should not be used in the map.
