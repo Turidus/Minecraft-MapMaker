@@ -4,12 +4,15 @@ import re
 import os
 import queue
 import time
+from urllib.request import urlopen
+from urllib.error import URLError
+import json
 
 
 class Args():
     
     pathToImage = None
-    bl = None
+    bl = []
     name = None
     twoD = False
     p = True
@@ -41,9 +44,10 @@ def _dispatchMapMaker(args, outPrioQueue):
     finally:
         if errorHappend:
             print(errorString)
-            app.queueFunction(app.setMessage, "output", errorString + "\nStatus: Waiting\n")
+            outPrioQueue.put( (-2, "Error: " + errorString + "\nStatus: Waiting\n") )
         else:
-            app.queueFunction(app.setMessage,"output", "Status: Done\n\nStatus: Waiting\n")
+            outPrioQueue.put( (-1, "Status: Done\n\nStatus: Waiting\n") )
+            
             
         app.queueFunction(app.enableButton,"Go")
         
@@ -71,15 +75,16 @@ def _collectOutput(outPrioQueue):
         else:
             out = outPrioQueue.get()
 
-            app.queueFunction(app.setMessage,"output", oldMessage + "\nStatus: " + out[1] + "\n")
+            if out[0] < 0:
+                app.queueFunction(app.setMessage,"output", out[1] + "\n")
+                outPrioQueue.task_done()
+                break
+                
+            else:
+                app.queueFunction(app.setMessage,"output", oldMessage + "\nStatus: " + out[1] + "\n")
+                outPrioQueue.task_done()
             
-            outPrioQueue.task_done()
-        if out[1] == "Finished with this image":
-            break
-            
-        
-    
-    
+       
 
 def press(name):
     
@@ -100,18 +105,6 @@ def press(name):
         errorHappend = True
         errorString += "Error: File not found\n"
         
-    
-    arguments.bl = entries["bl"]
-    if arguments.bl == "For example: 33, 14, 5" or arguments.bl == "":
-        arguments.bl = None
-    
-    elif "a" in re.sub(r'[^0-9,\s]','a',arguments.bl):
-        errorHappend = True
-        errorString +="Error: Invalid blacklist\n"
-        
-    else:
-        arguments.bl = arguments.bl.replace(" ", "")
-        arguments.bl = arguments.bl.split(",")
     
     arguments.n = entries["n"]
     if arguments.n == "":
@@ -156,6 +149,12 @@ def press(name):
         app.setMessage("output", errorString + "Status: Waiting\n")
         app.enableButton("Go")
         return
+        
+    for item in boxes:
+        
+        if not boxes[item] and len(item) > 3 and item[:3] == "ID:":
+            colorID = item.split()[1]
+            arguments.bl.append(colorID)
     
     arguments.twoD = boxes["2D"]
     
@@ -173,40 +172,75 @@ def press(name):
     outQueue = queue.PriorityQueue()    
     app.thread(_dispatchMapMaker,arguments, outQueue)
     app.thread(_collectOutput, outQueue)
+
+
+def colorListOpen():
+    app.showSubWindow("CB")
     
+def colorListClose():
+    app.hideSubWindow("CB")
+    
+def updateCheck():
+    
+    version = app.getLabel("version").split(" ")[1][1:]
+    
+    try:
+        with urlopen("https://api.github.com/repos/Turidus/Minecraft-MapMaker/releases/latest") as response:
+            
+            jsondata = response.read().decode("utf-8")
+            
+    except URLError:
+        
+        app.errorBox("Error", "Could not open URL")
+        
+    jsonDic = json.loads(jsondata)
+    lastRelease = jsonDic["tag_name"]
+    
+    if version == lastRelease:
+        app.infoBox("No update", "This Version is up to date")
+    else:
+        app.infoBox("A update", "There is an new version\nTo update, go to latest release")
+    
+def aboutMenu(name):
+    
+    if name == "About":
+        app.showSubWindow("about")
+        
+
+
 
 
     
 
 
 #---Building the GUI----
+#---Main Window----
 app = gui("Minecraft Map Maker")
 app.setSize("1000x600")
+app.addMenuList("About",["About"],aboutMenu)
 
 #---Column 0
 app.setSticky("w")
 app.addLabel("pathToImage","Path to image",row = 1, column = 0)
 app.setLabelAlign("pathToImage","e")
 
-app.addLabel("bl","Base color IDs that\nshould not be used",row = 2, column = 0)
+app.addLabel("n","Name",row = 2, column = 0)
+app.setLabelAlign("n","e")
+
+app.addLabel("bl","Colors/Blocks used",row = 3, column = 0)
 app.setLabelAlign("bl","e")
 
-app.addLabel("n","Name",row = 3, column = 0)
-app.setLabelAlign("n","e")
 
 #---Column 1
 app.setSticky("w")
 
 app.addFileEntry("pathToImage",row = 1, column = 1)
-#app.setEntry("pathToImage", "Path to the image")
 app.setEntryTooltip("pathToImage", "The path to your image")
 
-app.addEntry("bl", row = 2, column = 1)
-app.setEntryTooltip("bl", "For example: 33, 14, 5\nSee Readme for more infos")
-#app.setEntry("bl", "For example: 33, 14, 5")
-
-app.addEntry("n", row = 3, column = 1)
+app.addEntry("n", row = 2, column = 1)
 app.setEntryTooltip("n", "optional")
+
+app.addButton("Colors/Blocks", colorListOpen, row = 3, column = 1)
 
 
 #---Column 2
@@ -219,7 +253,7 @@ app.addVerticalSeparator(row = 0, column = 2, rowspan = 6)
 
 #---Column 3
 app.setSticky("w")
-app.addLabel("switches","Switches", row = 0, column = 3)
+app.addLabel("generate","Generate:", row = 0, column = 3)
 app.addCheckBox("2D", row = 1, column = 3)
 app.setCheckBoxTooltip("2D", "Generate a 2D instead of a stepped construced. Only 53 colors.")
 
@@ -248,7 +282,7 @@ app.setPadding(0)
 
 #---Column 5
 app.setSticky("w")
-app.addLabel("ints","Dimensions", row = 0, column = 5)
+app.addLabel("ints","Dimensions:", row = 0, column = 5)
 app.addLabel("minY","Minimal Y coordiante",row = 1, column = 5)
 app.setLabelAlign("minY","e")
 app.addLabel("maxY","Maximum Y coordiante",row = 2, column = 5)
@@ -281,9 +315,7 @@ app.setEntryTooltip("maxS", "At least 1. The bigger maxS becomes, the bigger the
 #---Row 7
 app.setSticky("we")
 app.addMessage("output", "Status: Waiting\n", row = 6, column = 0, colspan = 7)
-#app.setMessageAspect("output", 1000)
 app.setMessageWidth("output", 1000)
-#app.setMessageHeight("output", 100)
 app.setMessageBg("output", "white")
 app.setMessageRelief("output", "solid")
 app.setMessageAlign("output", "w")
@@ -295,4 +327,56 @@ app.addButton("Exit", press, row = 7, column = 5)
 
 
 
-app.go()
+#------------Subwindow-CB-------------
+app.startSubWindow("CB", modal = True)
+
+try:
+    with open("BaseColorIds.txt","r") as baseIDFile:
+        baseIDList = baseIDFile.read().splitlines()
+        baseIDList.pop(0)
+except IOError:
+    app.setMessage("output", "Error: No BaseColorID file found. Please exit and check your installation")
+
+app.setSticky("w")
+app.setPadding(2,2)
+columnLength = 15
+
+for index in range(len(baseIDList)):
+    lineSplit = baseIDList[index].split("\t")
+    boxName = "ID: {:<3}{:<30}".format(lineSplit[0],lineSplit[2])
+    boxColor = lineSplit[1].split(", ")
+    boxColorHex = "#%0.2x%0.2x%0.2x" % (int(boxColor[0]),int(boxColor[1]),int(boxColor[2]))
+    
+    colPic = int(index / columnLength) * 2
+    col = colPic + 1
+    row = index % columnLength
+    app.addLabel(boxName, text = "", row = row, column = colPic)
+    app.setLabelBg(boxName, boxColorHex)
+    app.setLabelRelief(boxName, "solid")
+    app.setLabelWidth(boxName, 5)
+    app.addCheckBox(boxName, row = row, column = col)
+    app.setCheckBox(boxName)
+    
+
+app.addButton("Back", colorListClose, row = columnLength + 1)
+app.addWebLink("Colors and their assoicated blocks (Minecraft Wiki)", "https://minecraft.gamepedia.com/Map_item_format", column = 1, row = columnLength + 1)
+app.stopSubWindow()
+
+#------------Subwindow-about-------------
+app.startSubWindow("about")
+app.setPadding(1,1)
+app.addLabel("Made by: Turidus")
+app.addWebLink("Readme", "https://github.com/Turidus/Minecraft-MapMaker/blob/master/README.md")
+app.addWebLink("Sourcecode", "https://github.com/Turidus/Minecraft-MapMaker")
+app.addWebLink("Latest Release", "https://github.com/Turidus/Minecraft-MapMaker/releases/latest")
+
+with open("README.md") as readme:
+    app.addLabel("version", text = readme.readline())
+    
+app.addButton("Check for Update", updateCheck)
+
+app.stopSubWindow()
+
+
+if __name__ == "__main__":
+    app.go()

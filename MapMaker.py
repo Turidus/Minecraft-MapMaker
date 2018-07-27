@@ -6,26 +6,16 @@ import os
 import argparse
 import re
 import queue
+import itertools
 
 
 
 def MapMaker(args, outPrioQueue = None):
     #Managing communication with GUI
     
-    class Prio():
-        prio: int = -1
-        
-        def add_get(self):
-            
-            self.prio += 1
-            
-            return self.prio
+    prioCounter = itertools.count()
     
-    def print2(tulpe):
-        
-        print(tulpe[1])
-    
-    priority = Prio()
+    def print2(tulpe): print(tulpe[1])
     
     if outPrioQueue == None:
         
@@ -37,7 +27,7 @@ def MapMaker(args, outPrioQueue = None):
         
     #Settings
 
-    newPrint((priority.add_get(),"Setting up"))
+    newPrint((prioCounter.__next__(),"Setting up"))
     
     imagePath = os.path.abspath(args.pathToImage)
     
@@ -73,58 +63,58 @@ def MapMaker(args, outPrioQueue = None):
     if maxSchematicSize < 1:
         raise ValueError("maxS is smaller than 1")
     elif maxSchematicSize > 129:
-        newPrint((priority.add_get(),"Your schematic size is bigger 129. be careful when importing such large schematics"))
+        newPrint((prioCounter.__next__(),"Your schematic size is bigger 129. be careful when importing such large schematics"))
     
     
 
-    newPrint((priority.add_get(),"Finished setting up"))
+    newPrint((prioCounter.__next__(),"Finished setting up"))
 
     
     #Calculating intermediaries
 
 
-    newPrint((priority.add_get(),"Calculating rgbMatrix"))  
+    newPrint((prioCounter.__next__(),"Calculating rgbMatrix"))  
     rgbMatrix = Parsers.imageFileToRGBMatrix(imagePath)
-    newPrint((priority.add_get(),"Done"))
+    newPrint((prioCounter.__next__(),"Done"))
 
     
-    newPrint((priority.add_get(),"Calculating mapIDMatrix"))
+    newPrint((prioCounter.__next__(),"Calculating mapIDMatrix"))
     mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDDic)
-    newPrint((priority.add_get(),"Done"))
+    newPrint((prioCounter.__next__(),"Done"))
 
     
     if args.bp or args.s:
-        newPrint((priority.add_get(),"Calculating positionMatrix"))
+        newPrint((prioCounter.__next__(),"Calculating positionMatrix"))
         positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, positionMatrixMinY, positionMatrixMaxY)
-        newPrint((priority.add_get(),"Done"))
+        newPrint((prioCounter.__next__(),"Done"))
 
         
     if args.s:
-        newPrint((priority.add_get(), "Calculating Schematic"))
+        newPrint((prioCounter.__next__(), "Calculating Schematic"))
         tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
-        newPrint((priority.add_get(),"Done"))
+        newPrint((prioCounter.__next__(),"Done"))
     
     #Calculating and saving results
     
 
     if args.ba:
-        newPrint((priority.add_get(),"Saving AmountTXT"))
+        newPrint((prioCounter.__next__(),"Saving AmountTXT"))
         Saving.saveAmountTxT(mapIDMatrix,mapIDDic,imageName)
 
     
     if args.bp:
-        newPrint((priority.add_get(),"Saving PositionTXT"))
+        newPrint((prioCounter.__next__(),"Saving PositionTXT"))
         Saving.saveBlockPositionTxT(positionMatrix,mapIDDic, imageName)
     
     if args.p:
-        newPrint((priority.add_get(),"Saving Image"))
+        newPrint((prioCounter.__next__(),"Saving Image"))
         Saving.saveImage(mapIDMatrix, mapIDDic, imageName)
         
     if args.s:
-        newPrint((priority.add_get(),"Saving Schematic"))
+        newPrint((prioCounter.__next__(),"Saving Schematic"))
         Saving.saveSchematic(tag_Compound_List, imageName)
         
-    newPrint((priority.add_get(),"Finished with this image"))
+    newPrint((prioCounter.__next__(),"Finished with this image"))
 
 if __name__ == "__main__":
     cmdparser = argparse.ArgumentParser(description="This procesess image files into multiple files\nthat help to build minecraft ingame maps.")
