@@ -1,5 +1,3 @@
-Version: v0.4
-
 # Minecraft-MapMaker
 
 

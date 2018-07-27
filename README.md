@@ -1,5 +1,3 @@
-Version: v0.4
-
 # Minecraft-MapMaker
 
 This program takes an image and generates multiple files that aid in the generation of Minecraft maps displaying

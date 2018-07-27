@@ -26,6 +26,12 @@ def MapMaker(args, outPrioQueue = None):
         newPrint = outPrioQueue.put
         
     #Settings
+    if args.v:
+        try:
+            with open("version") as vFile:
+                newPrint ((prioCounter.__next__(), vFile.read()))
+        except IOError:
+            newPrint((prioCounter.__next__(), "Version file not found"))
 
     newPrint((prioCounter.__next__(),"Setting up"))
     
@@ -43,6 +49,7 @@ def MapMaker(args, outPrioQueue = None):
         mapIDDic = MapIDGenerator.mapIDGenerator2D(args.bl)
     else:
         mapIDDic = MapIDGenerator.mapIDGenerator3D(args.bl)
+        
     
     
     positionMatrixMinY = int(args.minY) if args.minY else 4
@@ -121,6 +128,7 @@ if __name__ == "__main__":
     cmdparser.add_argument("pathToImage", help="The path to the image that should be processed\n")
     cmdparser.add_argument("-bl", nargs="+", help="Optional list of BaseColorIDs that should not be used\n")
     cmdparser.add_argument("-n", help = "Optional name for the resulting files\n")
+    cmdparser.add_argument("-v", action="store_true", help =" Show version")
     cmdparser.add_argument("-twoD", action="store_true", help = "If added, this will generate a flat map instead of a stepped one\n")
     cmdparser.add_argument("-p", action="store_false", help = "If added, this will prevent the generation of a preview picture of the map\n")
     cmdparser.add_argument("-bp", action="store_false", help = "If added, this will prevent the generation of a list of the block positions\n")
@@ -129,6 +137,7 @@ if __name__ == "__main__":
     cmdparser.add_argument("-minY", help = "Defines the minimum Y coordinate at which blocks are placed.\n Default = 4. Should be the block you will be standing on for schematics\n")
     cmdparser.add_argument("-maxY", help = "Defines the maximum Y coordinate at which blocks are placed. Default = 250. Does not impact schematics\n")
     cmdparser.add_argument("-maxS", help = "Defines the maximum sizie in X and Z of a schematic.\n Default = 128. If the picture is bigger, multiple schematics will be generated")
+    
     
     
     args = cmdparser.parse_args()
