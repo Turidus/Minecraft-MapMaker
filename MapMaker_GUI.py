@@ -4,6 +4,9 @@ import re
 import os
 import queue
 import time
+from urllib.request import urlopen
+from urllib.error import URLError
+import json
 
 
 class Args():
@@ -102,14 +105,6 @@ def press(name):
         errorHappend = True
         errorString += "Error: File not found\n"
         
-
-    for item in boxes:
-        
-        if not boxes[item] and len(item) > 3 and item[:3] == "ID:":
-            print(item)
-            colorID = item.split()[1]
-            arguments.bl.append(colorID)
-    print(arguments.bl)
     
     arguments.n = entries["n"]
     if arguments.n == "":
@@ -154,6 +149,12 @@ def press(name):
         app.setMessage("output", errorString + "Status: Waiting\n")
         app.enableButton("Go")
         return
+        
+    for item in boxes:
+        
+        if not boxes[item] and len(item) > 3 and item[:3] == "ID:":
+            colorID = item.split()[1]
+            arguments.bl.append(colorID)
     
     arguments.twoD = boxes["2D"]
     
@@ -178,6 +179,34 @@ def colorListOpen():
     
 def colorListClose():
     app.hideSubWindow("CB")
+    
+def updateCheck():
+    
+    version = app.getLabel("version").split(" ")[1][1:]
+    
+    try:
+        with urlopen("https://api.github.com/repos/Turidus/Minecraft-MapMaker/releases/latest") as response:
+            
+            jsondata = response.read().decode("utf-8")
+            
+    except URLError:
+        
+        app.errorBox("Error", "Could not open URL")
+        
+    jsonDic = json.loads(jsondata)
+    lastRelease = jsonDic["tag_name"]
+    
+    if version == lastRelease:
+        app.infoBox("No update", "This Version is up to date")
+    else:
+        app.infoBox("A update", "There is an new version\nTo update, go to latest release")
+    
+def aboutMenu(name):
+    
+    if name == "About":
+        app.showSubWindow("about")
+        
+
 
 
 
@@ -188,6 +217,7 @@ def colorListClose():
 #---Main Window----
 app = gui("Minecraft Map Maker")
 app.setSize("1000x600")
+app.addMenuList("About",["About"],aboutMenu)
 
 #---Column 0
 app.setSticky("w")
@@ -285,9 +315,7 @@ app.setEntryTooltip("maxS", "At least 1. The bigger maxS becomes, the bigger the
 #---Row 7
 app.setSticky("we")
 app.addMessage("output", "Status: Waiting\n", row = 6, column = 0, colspan = 7)
-#app.setMessageAspect("output", 1000)
 app.setMessageWidth("output", 1000)
-#app.setMessageHeight("output", 100)
 app.setMessageBg("output", "white")
 app.setMessageRelief("output", "solid")
 app.setMessageAlign("output", "w")
@@ -299,7 +327,7 @@ app.addButton("Exit", press, row = 7, column = 5)
 
 
 
-#------------Subwindow--------------
+#------------Subwindow-CB-------------
 app.startSubWindow("CB", modal = True)
 
 try:
@@ -332,6 +360,21 @@ for index in range(len(baseIDList)):
 
 app.addButton("Back", colorListClose, row = columnLength + 1)
 app.addWebLink("Colors and their assoicated blocks (Minecraft Wiki)", "https://minecraft.gamepedia.com/Map_item_format", column = 1, row = columnLength + 1)
+app.stopSubWindow()
+
+#------------Subwindow-about-------------
+app.startSubWindow("about")
+app.setPadding(1,1)
+app.addLabel("Made by: Turidus")
+app.addWebLink("Readme", "https://github.com/Turidus/Minecraft-MapMaker/blob/master/README.md")
+app.addWebLink("Sourcecode", "https://github.com/Turidus/Minecraft-MapMaker")
+app.addWebLink("Latest Release", "https://github.com/Turidus/Minecraft-MapMaker/releases/latest")
+
+with open("README.md") as readme:
+    app.addLabel("version", text = readme.readline())
+    
+app.addButton("Check for Update", updateCheck)
+
 app.stopSubWindow()
 
 

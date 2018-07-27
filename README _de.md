@@ -1,3 +1,5 @@
+Version: v0.4
+
 # Minecraft-MapMaker
 
 
@@ -37,7 +39,7 @@ Innerhalb der GUI können alle Optionen angepasst werden.
 
 ### From MapMaker_GUI.exe
 **only tested for Windows 10 64bit**  
-Diese Programm kann auch über eine exe gestartet werden. Dafür muss MinecraftMapMaker_exe.zip(https://github.com/Turidus/Minecraft-MapMaker/releases) runtergeladen und entpackt werden. Das Programm wird mit Hilfe von MapMaker_GUI.exe gestartet.
+Diese Programm kann auch über eine exe gestartet werden. Dafür muss MinecraftMapMaker_exe.zip(https://github.com/Turidus/Minecraft-MapMaker/releases/latest) runtergeladen und entpackt werden. Das Programm wird mit Hilfe von MapMaker_GUI.exe gestartet.
 
 Kein Python oder andere Abhängigkeit wird benötigt.
 
