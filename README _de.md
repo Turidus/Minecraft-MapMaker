@@ -42,6 +42,8 @@ Diese Programm kann auch über eine exe gestartet werden. Dafür muss MinecraftM
 Kein Python oder andere Abhängigkeit wird benötigt.
 
 ### Optionale Argumente:
++ *-v*  
+  Zeigt Version
 
 + *-bl* BaseColorID BaseColorID ... 
 Diese Option ermöglicht es, bestimmt Farben und die damit verbundenen Blöcke auszuschließen.
