@@ -1,15 +1,37 @@
+"""
+Provides funcions to transform the differnent data representations into each other.
+
+Made by Turidus https://github.com/Turidus/Minecraft-MapMaker
+Copyright (c) 2018 Turidus
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+"""
+
 from math import sqrt
 from PIL import Image
-import os
 import io
-import sys
 import copy
-import random as rnd
 
 import nbt
 
 
-_maxProc = max(1, os.cpu_count() -1)
 
 def _rgbDistance(rgbFromPixel,rgbFromList):
     
@@ -136,6 +158,10 @@ def mapIDToAmountString(mapIDMatrix,mapIDDic):
             blockID =  key
             
         retString += "{:^40}{:^10}{:>10}\n".format(usedBlocks[key][1], blockID, str(usedBlocks[key][0]))
+        
+    if "9" in usedBlocks:
+        glassBlocks = 5 * usedBlocks["9"][0]
+        retString += "\n{:^40}{:^10}{:>10}\n".format("for Water, aprox. Glass:", "20", str(glassBlocks))
     
     return retString
     
@@ -316,6 +342,40 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSi
             correctedY = position[3] - minY
             
             schematicCubix[correctedY][z][x] = mapIDDic[position[0]][2]
+            
+            #Adding glass around water
+            
+            if mapIDDic[position[0]][2] == "9":
+                
+                try:
+                    if schematicCubix[correctedY - 1][z][x] == "0":
+                        schematicCubix[correctedY - 1][z][x] = "20"
+                except IndexError:
+                    pass
+                    
+                try:
+                    if schematicCubix[correctedY][z - 1][x] == "0":
+                        schematicCubix[correctedY][z - 1][x] = "20"
+                except IndexError:
+                    pass
+                    
+                try:
+                    if schematicCubix[correctedY][z + 1][x] == "0":
+                        schematicCubix[correctedY][z + 1][x] = "20"
+                except IndexError:
+                    pass
+                    
+                try:
+                    if schematicCubix[correctedY][z][x - 1] == "0":
+                        schematicCubix[correctedY][z][x - 1] = "20"
+                except IndexError:
+                    pass
+                
+                try:
+                    if schematicCubix[correctedY][z][x + 1] == "0":
+                        schematicCubix[correctedY][z][x + 1] = "20"
+                except IndexError:
+                    pass
 
             highestUsedY = max(correctedY, highestUsedY)
             
@@ -388,9 +448,6 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, minY, maxY, maxSi
     
     
     return tag_compound_list
-    
-    
-    
     
     
     

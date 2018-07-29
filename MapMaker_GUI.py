@@ -1,12 +1,39 @@
+"""
+Builds and displays the GUI
+
+
+Made by Turidus https://github.com/Turidus/Minecraft-MapMaker
+Copyright (c) 2018 Turidus
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+
 from appJar import gui
-import MapMaker
-import re
 import os
 import queue
 import time
 from urllib.request import urlopen
 from urllib.error import URLError
 import json
+
+import MapMaker
 
 
 class Args():
@@ -53,8 +80,7 @@ def _dispatchMapMaker(args, outPrioQueue):
         app.queueFunction(app.enableButton,"Go")
         
 def _collectOutput(outPrioQueue):
-        
-    #oldMessage = app.queueFunction(app.getMessage,"output") #---- Does not work
+    
 
     oldMessage = app.getMessage("output")   #Not thread safe
     out = (0,"Waiting")
@@ -192,7 +218,7 @@ def updateCheck():
             
     except URLError:
         
-        app.errorBox("Error", "Could not open URL")
+        app.errorBox("Error", "Could not connect to Github")
         
     jsonDic = json.loads(jsondata)
     lastRelease = jsonDic["tag_name"].strip()
