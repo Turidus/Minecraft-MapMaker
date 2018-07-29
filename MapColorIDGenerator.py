@@ -1,5 +1,5 @@
 """
-Generates the mapID dictionary out of the BaseColorIDList.txt and a optional blacklist.
+Generates the mapColorID dictionary out of the BaseColorIDList.txt and a optional blacklist.
 
 Made by Turidus https://github.com/Turidus/Minecraft-MapMaker
 Copyright (c) 2018 Turidus
@@ -29,13 +29,19 @@ def mult180(x):
 def mult220(x):
     return int((x * 220) / 255)
 
-def mapIDGenerator3D(blackList = []):
+def mapColorIDGenerator3D(blackList = []):
+    """
+    Generates the full mapColorID dictionary for all blocks NOT specified in the blackList.
+    These means there are three mapColorIDs generated for every entry left in BaseColorID.txt
+    
+    param: blackList: A list of BaseColorID strings (f.e. ["33", "22", "5"])
+    """
     
 
     with open("BaseColorIds.txt","r") as baseIDFile:
         baseIDList = baseIDFile.read().splitlines()
     
-    mapIDDic = {}
+    mapColorIDDic = {}
     baseIDList.pop(0)
     
     for entry in baseIDList:
@@ -49,19 +55,25 @@ def mapIDGenerator3D(blackList = []):
         rgbList220 = (mult220(int(rgbList[0])), mult220(int(rgbList[1])), mult220(int(rgbList[2])))
         rgbList255 = (int(rgbList[0]), int(rgbList[1]), int(rgbList[2]))
         
-        mapIDDic[int(entry[0]) * 4] = (rgbList180, entry[2], entry[3])
-        mapIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
-        mapIDDic[int(entry[0]) * 4 + 2] = (rgbList255, entry[2], entry[3])
+        mapColorIDDic[int(entry[0]) * 4] = (rgbList180, entry[2], entry[3])
+        mapColorIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
+        mapColorIDDic[int(entry[0]) * 4 + 2] = (rgbList255, entry[2], entry[3])
     
     
-    return mapIDDic
+    return mapColorIDDic
 
-def mapIDGenerator2D(blackList = []):
+def mapColorIDGenerator2D(blackList = []):
+    """
+    Generates the flat mapColorID dictionary for all blocks NOT specified in the blackList.
+    These means there are three is one mapColorID generated for every entry left in BaseColorID.txt
+    
+    param: blackList: A list of BaseColorID strings (f.e. ["33", "22", "5"])
+    """
     
     with open("BaseColorIds.txt","r") as baseIDFile:
         baseIDList = baseIDFile.read().splitlines()
     
-    mapIDDic = {}
+    mapColorIDDic = {}
     baseIDList.pop(0)
     
     for entry in baseIDList:
@@ -73,6 +85,6 @@ def mapIDGenerator2D(blackList = []):
         
         rgbList220 = (mult220(int(rgbList[0])), mult220(int(rgbList[1])), mult220(int(rgbList[2])))
         
-        mapIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
+        mapColorIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
     
-    return mapIDDic
+    return mapColorIDDic

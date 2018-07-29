@@ -1,4 +1,8 @@
 """
+Manger for the differnt calculations needed to provided the requestet data.
+See Readme for details.
+Can be used directly with a command line tool or with a GUI.
+
 Made by Turidus https://github.com/Turidus/Minecraft-MapMaker
 Copyright (c) 2018 Turidus
 
@@ -31,11 +35,38 @@ import itertools
 
 import Parsers
 import Saving
-import MapIDGenerator
+import MapColorIDGenerator
 
 
 
 def MapMaker(args, outPrioQueue = None):
+    """
+    Manages the creation of the specified data.
+    
+    param: args: A struct like class that provides a field for every possible option. For example:
+        
+                    class Args():
+                        
+                        pathToImage = None
+                        bl = []
+                        name = None
+                        twoD = False
+                        p = True
+                        bp = True
+                        ba = True
+                        s = True
+                        minY = 4
+                        maxY = 250
+                        maxS = 129
+                        v = False
+                        
+          outPrioQueue: A queue.PriorityQueue(). If provided, this will be used as output channel.
+                        If None, the output uses print().
+                        
+    Exception: Raises IOError, VauleError
+    """
+    
+    
     #Managing communication with GUI
     
     prioCounter = itertools.count()
@@ -71,9 +102,9 @@ def MapMaker(args, outPrioQueue = None):
         imageName = re.sub(r'[^a-zA-Z0-9_]', '', args.n)
     
     if args.twoD:
-        mapIDDic = MapIDGenerator.mapIDGenerator2D(args.bl)
+        mapColorIDDic = MapColorIDGenerator.mapColorIDGenerator2D(args.bl)
     else:
-        mapIDDic = MapIDGenerator.mapIDGenerator3D(args.bl)
+        mapColorIDDic = MapColorIDGenerator.mapColorIDGenerator3D(args.bl)
         
     
     
@@ -110,20 +141,20 @@ def MapMaker(args, outPrioQueue = None):
     newPrint((prioCounter.__next__(),"Done"))
 
     
-    newPrint((prioCounter.__next__(),"Calculating mapIDMatrix"))
-    mapIDMatrix = Parsers.rgbMatrixToMapID(rgbMatrix,mapIDDic)
+    newPrint((prioCounter.__next__(),"Calculating mapColorIDMatrix"))
+    mapColorIDMatrix = Parsers.rgbMatrixTomapColorID(rgbMatrix,mapColorIDDic)
     newPrint((prioCounter.__next__(),"Done"))
 
     
     if args.bp or args.s:
         newPrint((prioCounter.__next__(),"Calculating positionMatrix"))
-        positionMatrix = Parsers.mapIDToPositionMatrix(mapIDMatrix, positionMatrixMinY, positionMatrixMaxY)
+        positionMatrix = Parsers.mapColorIDToPositionMatrix(mapColorIDMatrix, positionMatrixMinY, positionMatrixMaxY)
         newPrint((prioCounter.__next__(),"Done"))
 
         
     if args.s:
         newPrint((prioCounter.__next__(), "Calculating Schematic"))
-        tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapIDDic, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
+        tag_Compound_List = Parsers.positionMatrixToTag_CompoundList(positionMatrix, mapColorIDDic, positionMatrixMinY, positionMatrixMaxY, maxSchematicSize)
         newPrint((prioCounter.__next__(),"Done"))
     
     #Calculating and saving results
@@ -131,22 +162,24 @@ def MapMaker(args, outPrioQueue = None):
 
     if args.ba:
         newPrint((prioCounter.__next__(),"Saving AmountTXT"))
-        Saving.saveAmountTxT(mapIDMatrix,mapIDDic,imageName)
+        Saving.saveAmountTxT(mapColorIDMatrix,mapColorIDDic,imageName)
 
     
     if args.bp:
         newPrint((prioCounter.__next__(),"Saving PositionTXT"))
-        Saving.saveBlockPositionTxT(positionMatrix,mapIDDic, imageName)
+        Saving.saveBlockPositionTxT(positionMatrix,mapColorIDDic, imageName)
     
     if args.p:
         newPrint((prioCounter.__next__(),"Saving Image"))
-        Saving.saveImage(mapIDMatrix, mapIDDic, imageName)
+        Saving.saveImage(mapColorIDMatrix, mapColorIDDic, imageName)
         
     if args.s:
         newPrint((prioCounter.__next__(),"Saving Schematic"))
         Saving.saveSchematic(tag_Compound_List, imageName)
         
     newPrint((prioCounter.__next__(),"Finished with this image"))
+
+
 
 if __name__ == "__main__":
     cmdparser = argparse.ArgumentParser(description="This procesess image files into multiple files\nthat help to build minecraft ingame maps.")

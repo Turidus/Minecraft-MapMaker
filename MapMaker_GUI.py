@@ -1,5 +1,7 @@
 """
-Builds and displays the GUI
+Builds and displays the GUI for Minecraft Map Maker.
+
+Based on appJar.
 
 
 Made by Turidus https://github.com/Turidus/Minecraft-MapMaker
