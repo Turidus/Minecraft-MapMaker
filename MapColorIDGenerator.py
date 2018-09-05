@@ -125,4 +125,4 @@ def mapColorIDGenerator4Colors(blackList = []):
         mapColorIDDic[int(entry[0]) * 4] = (rgbList180, entry[2], entry[3])
         mapColorIDDic[int(entry[0]) * 4 + 1] = (rgbList220, entry[2], entry[3])
         mapColorIDDic[int(entry[0]) * 4 + 2] = (rgbList255, entry[2], entry[3])
-        mapColorIDDic[int(entry[0]) * 4 + 3] = (rgbList13, entry[2], entry[3]
+        mapColorIDDic[int(entry[0]) * 4 + 3] = (rgbList13, entry[2], entry[3])
