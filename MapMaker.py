@@ -43,7 +43,8 @@ def MapMaker(args, outPrioQueue = None):
     """
     Manages the creation of the specified data.
     
-    param: args: A struct like class that provides a field for every possible option. For example:
+    param: args: A struct like class that provides a field for every possible option.
+                 Needed fields and their default values are:
         
                     class Args():
                         
