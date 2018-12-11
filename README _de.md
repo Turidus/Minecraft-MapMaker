@@ -99,6 +99,8 @@ zusammen zu fügen.
 ## Über (mehrere) Schematics
 Die Schematic expandiert von dem Block auf dem man steht in Richtung **Osten** und **Süden**. Wenn eine Schematic zwischen (0,0)
 und (128,128) platziert werden soll, muss man sich auf (0,0) stellen. Wenn mehrere Schematics generiert werden, werden sie
-nach ihrer relativen Platzierung zueinander benannt. PartX0Z1 liegt östlich von partX0Z0, 
-partX1Z0 südlich von X0Z0.
+nach ihrer relativen Platzierung zueinander benannt. PartZ0X1 liegt östlich von partZ0X0, 
+partZ1X0 südlich von Z0X0.
 
+## About the BaseColorIDs.txt
+Hier werden die zu den Farben gehörigen Blöcke gespeichert. Man kann diese Blöcke ändern, in dem man die BlockID values anpasst.

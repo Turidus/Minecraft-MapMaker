@@ -50,7 +50,7 @@ No Python or other dependencies requiered.
 
 + *-bl* BaseColorID BaseColorID ...  
   This option lets you block colors, and with that the blocks that make up that colors, that should not be used in the map.
-  You can look up the colors and related blocks [here](https://minecraft.gamepedia.com/Map_item_format) or in the BaseColorID file.
+  You can look up the colors and related blocks [here](https://minecraft.gamepedia.com/Map_item_format) or in the BaseColorIDs file.
       
 + *-n* Name  
   This option lets you name the output files. If not provided, the name will be generated out of the image file name.
@@ -114,5 +114,8 @@ An additional problem is performance. Very large images can take a while to proc
 The schematics expand from the block you are standing on towards **East** and **South**. If you want to place a schematic between (0,0)
 and (128,128) you have to stand on (0,0). The way you are looking has no impact on it. The upper left pixel of the image will always
 spawn on the (x,z) block you are standing, which will be the north-west most block in the construct.
-Multiple schematics are named with their relative placement towards each other. PartX0Z1 has to be placed on the east of partX0Z0, 
-partX1Z0 has to be placed on the south of X0Z0.
+Multiple schematics are named with their relative placement towards each other. PartZ0X1 has to be placed on the east of partZ0X0, 
+partZ1X0 has to be placed on the south of Z0X0.
+
+## About the BaseColorIDs.txt
+Here are the default blocks for all color values saved. You can change the used blocks by change the BlockID value to the BlockID of your choice.

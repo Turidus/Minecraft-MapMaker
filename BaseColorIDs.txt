@@ -4,7 +4,7 @@ BaseID	R,G,B	BlockToUse	BlockID
 3	199, 199, 199	Cobweb	30
 4	255, 0, 0	Block of Redstone	152
 5	160, 160, 255	Ice	79
-6	167, 167, 167	Block of Iron	42
+6	167, 167, 167	Iron Bars	101
 7	0, 124, 0	Leaves	18
 8	255, 255, 255	Snow Block	80
 9	164, 168, 184	Clay	82

@@ -155,7 +155,7 @@ def saveSchematic(Tag_Compound_List, name):
             
             schematicToSave = gzip.compress(nbt.toByte(Tag_Compound_List[index]))
                 
-            with open("./save/" + name + "/" + name +"partX{}Z{}.schematic".format(partNumber[0],partNumber[1]), "wb") as saveFile:
+            with open("./save/" + name + "/" + name +"partZ{}X{}.schematic".format(partNumber[0],partNumber[1]), "wb") as saveFile:
                 
                 saveFile.write(schematicToSave)
     
