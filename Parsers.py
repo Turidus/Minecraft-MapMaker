@@ -479,6 +479,15 @@ def positionMatrixToTag_CompoundList(positionMatrix, mapColorIDDic, minY, maxY, 
                         schematicCubix[correctedY][z][x + 1] = "20"
                 except IndexError:
                     pass
+            
+            #Adding a solid block under iron bars so the color appears
+            
+            if mapColorIDDic[position[0]][2] == "101":
+                try:
+                    if schematicCubix[correctedY - 1][z][x] == "0":
+                        schematicCubix[correctedY - 1][z][x] = "1"
+                except IndexError:
+                    pass                    
 
             highestUsedY = max(correctedY, highestUsedY)
             
